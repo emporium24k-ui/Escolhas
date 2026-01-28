@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Landing Interativa</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --text:#f4f4f6;
+      --muted:rgba(244,244,246,.70);
+      --border:rgba(255,255,255,.14);
+      --radius:18px;
+      --gap:12px;
+      --btnBg:rgba(0,0,0,.35);
+      --btnBgHover:rgba(0,0,0,.55);
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--text);
+      padding: 18px;
+    }
+    .wrap{
+      width:min(1100px, 100%);
+      margin:0 auto;
+      display:grid;
+      gap: var(--gap);
+    }
+
+    .status{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: rgba(255,255,255,.03);
+    }
+    .pill{
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      padding:6px 10px;
+      color:rgba(255,255,255,.88);
+    }
+    .pill strong{font-variant-numeric: tabular-nums;}
+
+    .grid6{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--gap);
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .grid6{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: rgba(255,255,255,.02);
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+
+    /* TOP 3 */
+    .mediaPanel{ position:relative; min-height: 120px; }
+    .media{
+      width:100%;
+      display:block;
+      background:#0a0a0a;
+    }
+    .media img{
+      width:100%;
+      height:auto;
+      display:block;
+    }
+    .media iframe{
+      width:100%;
+      height:70vh;
+      border:0;
+      display:block;
+      background:#0a0a0a;
+    }
+
+    .choiceBtn{
+      position:absolute;
+      left:12px; right:12px; bottom:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: var(--btnBg);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .choiceBtn:hover{
+      background: var(--btnBgHover);
+      border-color: rgba(255,255,255,.26);
+    }
+    .choiceBtn:active{ transform: translateY(1px); }
+
+    /* BOTTOM 3 */
+    .textPanel{ padding:14px 14px 16px; }
+    .textPanel p{
+      margin:0;
+      font-size:18px;
+      line-height:1.45;
+      color:rgba(255,255,255,.92);
+      word-break: break-word;
+    }
+
+    .isHidden{ display:none !important; }
+
+    .bigLabel{
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .centerText{
+      text-align:center;
+      font-size:20px;
+      line-height:1.35;
+      font-weight:900;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="status">
+      <div class="pill" id="statusStage">Etapa: <strong>inicio</strong></div>
+      <div class="pill" id="statusTimer" style="display:none;">Timer: <strong><span id="timerSec">0</span>s</strong></div>
+    </div>
+
+    <div class="grid6">
+
+      <!-- TOP 3 -->
+      <div class="panel mediaPanel" id="top1">
+        <div class="media">
+          <img id="top1img" alt="top1" />
+          <iframe id="top1pdf" title="pdf1" class="isHidden"></iframe>
+        </div>
+        <div class="choiceBtn" id="top1btn" role="button" tabindex="0">continuar</div>
+      </div>
+
+      <div class="panel mediaPanel" id="top2">
+        <div class="media">
+          <img id="top2img" alt="top2" />
+          <iframe id="top2pdf" title="pdf2" class="isHidden"></iframe>
+        </div>
+        <div class="choiceBtn" id="top2btn" role="button" tabindex="0">continuar</div>
+      </div>
+
+      <div class="panel mediaPanel" id="top3">
+        <div class="media">
+          <img id="top3img" alt="top3" />
+          <iframe id="top3pdf" title="pdf3" class="isHidden"></iframe>
+        </div>
+        <div class="choiceBtn" id="top3btn" role="button" tabindex="0">continuar</div>
+      </div>
+
+      <!-- BOTTOM 3 -->
+      <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
+      <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
+      <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
+
+    </div>
+  </div>
+
+<script>
+  /* CONFIG */
+  const IMG_BASE = "img/";
+  const PDF_BASE = "pdf/";
+  const IMG_EXT  = ".webp"; // troque se precisar
+  const WHATSAPP_NUMBER = "5541998518452";
+  const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+
+  const T_INICIO_RANDOM = 10;
+  const T_PADRAO = 10;
+
+  /* ELEMENTOS */
+  const statusStage = document.getElementById("statusStage");
+  const statusTimer = document.getElementById("statusTimer");
+  const timerSec = document.getElementById("timerSec");
+
+  const top1 = document.getElementById("top1");
+  const top2 = document.getElementById("top2");
+  const top3 = document.getElementById("top3");
+
+  const top1img = document.getElementById("top1img");
+  const top2img = document.getElementById("top2img");
+  const top3img = document.getElementById("top3img");
+
+  const top1pdf = document.getElementById("top1pdf");
+  const top2pdf = document.getElementById("top2pdf");
+  const top3pdf = document.getElementById("top3pdf");
+
+  const top1btn = document.getElementById("top1btn");
+  const top2btn = document.getElementById("top2btn");
+  const top3btn = document.getElementById("top3btn");
+
+  const bot1 = document.getElementById("bot1");
+  const bot2 = document.getElementById("bot2");
+  const bot3 = document.getElementById("bot3");
+
+  const bot1p = document.getElementById("bot1p");
+  const bot2p = document.getElementById("bot2p");
+  const bot3p = document.getElementById("bot3p");
+
+  /* TIMER */
+  let timerHandle = null;
+  let remaining = 0;
+  let onTimeout = null;
+
+  function clearTimer(){
+    if (timerHandle) clearInterval(timerHandle);
+    timerHandle = null;
+    onTimeout = null;
+    statusTimer.style.display = "none";
+  }
+
+  function startTimer(seconds, timeoutFn){
+    clearTimer();
+    remaining = seconds;
+    onTimeout = timeoutFn;
+    timerSec.textContent = String(remaining);
+    statusTimer.style.display = "inline-flex";
+
+    timerHandle = setInterval(() => {
+      remaining -= 1;
+      timerSec.textContent = String(Math.max(0, remaining));
+      if (remaining <= 0){
+        clearTimer();
+        if (typeof onTimeout === "function") onTimeout();
+      }
+    }, 1000);
+  }
+
+  /* HELPERS */
+  function setStageLabel(label){
+    statusStage.innerHTML = `Etapa: <strong>${label}</strong>`;
+  }
+  function show(el){ el.classList.remove("isHidden"); }
+  function hide(el){ el.classList.add("isHidden"); }
+
+  function setBtn(btnEl, label, fn){
+    btnEl.textContent = label;
+    btnEl.style.display = label ? "flex" : "none";
+
+    btnEl.onclick = null;
+    btnEl.onkeydown = null;
+
+    const act = () => { if (typeof fn === "function") fn(); };
+    btnEl.onclick = act;
+    btnEl.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") act(); };
+  }
+
+  function setBottom(htmlLeft, htmlMid, htmlRight, showLeft=true, showMid=true, showRight=true){
+    if (showLeft) show(bot1); else hide(bot1);
+    if (showMid) show(bot2); else hide(bot2);
+    if (showRight) show(bot3); else hide(bot3);
+    if (showLeft) bot1p.innerHTML = htmlLeft || "";
+    if (showMid) bot2p.innerHTML = htmlMid || "";
+    if (showRight) bot3p.innerHTML = htmlRight || "";
+  }
+
+  function setTopImage(which, name){
+    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
+    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
+    show(imgEl); hide(pdfEl);
+    imgEl.src = IMG_BASE + name + IMG_EXT;
+  }
+
+  function clearTopMedia(which){
+    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
+    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
+    hide(imgEl); hide(pdfEl);
+  }
+
+  function setTopPDF(which, pdfName){
+    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
+    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
+    hide(imgEl); show(pdfEl);
+    pdfEl.src = PDF_BASE + pdfName + ".pdf";
+  }
+
+  /* =========================
+     INICIO
+  ========================= */
+  function inicio(){
+    clearTimer();
+    setStageLabel("inicio");
+
+    show(top1); hide(top2); show(top3);
+
+    setTopImage(1, "01");
+    setTopImage(3, "02");
+
+    setBtn(top1btn, "continuar", () => etapa01());
+    setBtn(top3btn, "continuar", () => etapa02());
+
+    // nada no meio
+    setBottom(
+      `<div class="bigLabel">mulher</div>`,
+      ``,
+      `<div class="bigLabel">homem</div>`,
+      true, false, true
+    );
+
+    startTimer(T_INICIO_RANDOM, () => (Math.random() < 0.5 ? etapa01() : etapa02()));
+  }
+
+  /* =========================
+     ETAPA 01
+  ========================= */
+  function etapa01(){
+    clearTimer();
+    setStageLabel("Etapa 01");
+
+    // imagem centro apenas (0102) + botões sim/não nos lados (sem imagens)
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0102");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "sim", () => etapa01_sim());
+    setBtn(top3btn, "não", () => etapa01_nao());
+    setBtn(top2btn, "", null); // sem botão no centro
+
+    setBottom(
+      ``,
+      `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`,
+      ``,
+      false, true, false
+    );
+
+    startTimer(T_PADRAO, () => etapa01_nao());
+  }
+
+  function etapa01_nao(){
+    clearTimer();
+    setStageLabel('Etapa 01 parte 2 "não"');
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0105");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top2btn, "", null);
+    setBtn(top3btn, "", null);
+
+    setBottom(
+      ``,
+      `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`,
+      ``,
+      false, true, false
+    );
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  function etapa01_sim(){
+    clearTimer();
+    setStageLabel('Etapa 01 parte 2 "sim"');
+
+    // centro 0103, direita 0301 (Emporium24k), esquerda 0401 (Loja Baratesa)
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0401");
+    setTopImage(2, "0103");
+    setTopImage(3, "0301");
+
+    setBtn(top1btn, "continuar", () => etapa01_baratesa());
+    setBtn(top3btn, "continuar", () => etapa01_emporium());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">Loja Baratesa</div>`,
+      `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`,
+      `<div class="bigLabel">Emporium24k</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  function etapa01_emporium(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 3 Emporium24k");
+
+    // meio 03, laterais 0103 e 0103
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0103");
+    setTopImage(2, "03");
+    setTopImage(3, "0103");
+
+    setBtn(top1btn, "continuar", () => etapa01_emporium_namoro());
+    setBtn(top3btn, "continuar", () => etapa01_emporium_casamento());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">quero um par de anéis de namoro</div>`,
+      `<div class="centerText">Olá como posso te ajudar?</div>`,
+      `<div class="bigLabel">quero um par de anéis de casamento</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_sim());
+  }
+
+  function etapa01_baratesa(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 3 Loja Baratesa");
+
+    // meio 04, laterais 0103 / 0103
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0103");
+    setTopImage(2, "04");
+    setTopImage(3, "0103");
+
+    setBtn(top1btn, "continuar", () => etapa01_baratesa_sim());
+    setBtn(top3btn, "continuar", () => etapa01_baratesa_nao());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">sim</div>`,
+      `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`,
+      `<div class="bigLabel">não</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_sim());
+  }
+
+  function etapa01_emporium_namoro(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 4 namoro Emporium24k");
+
+    // PDF Prata no meio, botões em cima (voltar / whatsapp)
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopPDF(2, "Prata");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">muito caro</div>`,
+      ``,
+      `<div class="bigLabel">quero comprar</div>`,
+      true, false, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_emporium());
+  }
+
+  function etapa01_emporium_casamento(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 4 casamento Emporium24k");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopPDF(2, "Ouro");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">muito caro</div>`,
+      ``,
+      `<div class="bigLabel">quero comprar</div>`,
+      true, false, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_emporium());
+  }
+
+  function etapa01_baratesa_sim(){
+    clearTimer();
+    setStageLabel('Etapa 01 parte 4 "sim" Loja Baratesa');
+
+    // meio 0108, direita 0106 voltar loja, esquerda 0105 desistir
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0105");
+    setTopImage(2, "0108");
+    setTopImage(3, "0106");
+
+    setBtn(top1btn, "continuar", () => etapa01_desistir());
+    setBtn(top3btn, "continuar", () => etapa01_voltar_baratesa());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">Desistir</div>`,
+      `<div class="centerText">FUI TAPEADA</div>`,
+      `<div class="bigLabel">voltar na loja barateza</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_desistir());
+  }
+
+  function etapa01_baratesa_nao(){
+    // volta para Etapa 01 parte 2 botão "sim"
+    etapa01_sim();
+  }
+
+  function etapa01_desistir(){
+    // Etapa 01 parte 5 botão Desistir: volta para o inicio
+    inicio();
+  }
+
+  function etapa01_voltar_baratesa(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 5 voltar na loja barateza");
+
+    // meio 0402, esquerda 0106 LUTAR, direita 0105 Desistir
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0106");
+    setTopImage(2, "0402");
+    setTopImage(3, "0105");
+
+    setBtn(top1btn, "continuar", () => etapa01_lutar());
+    setBtn(top3btn, "continuar", () => etapa01_desistir());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">LUTAR</div>`,
+      `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`,
+      `<div class="bigLabel">Desistir</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => etapa01_desistir());
+  }
+
+  function etapa01_lutar(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 6 LUTAR");
+
+    // meio 0403, só botão na direita continuar (timer => continuar)
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0403");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_final());
+    setBtn(top2btn, "", null);
+
+    setBottom(``, ``, ``, false, false, false);
+
+    startTimer(T_PADRAO, () => etapa01_final());
+  }
+
+  function etapa01_final(){
+    clearTimer();
+    setStageLabel("Etapa 01 parte 7 continuar");
+
+    // meio 0107, só botão direita continuar (leva ao início)
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0107");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio());
+    setBtn(top2btn, "", null);
+
+    setBottom(``, ``, ``, false, false, false);
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  /* =========================
+     ETAPA 02 (literal como você escreveu)
+  ========================= */
+  function etapa02(){
+    clearTimer();
+    setStageLabel("Etapa 02");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0202");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "sim", () => etapa02_sim());
+    setBtn(top3btn, "não", () => etapa02_nao());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      ``,
+      `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`,
+      ``,
+      false, true, false
+    );
+
+    startTimer(T_PADRAO, () => etapa02_nao());
+  }
+
+  function etapa02_nao(){
+    clearTimer();
+    setStageLabel('Etapa 02 parte 2 "não"');
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0205");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top2btn, "", null);
+    setBtn(top3btn, "", null);
+
+    setBottom(
+      ``,
+      `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`,
+      ``,
+      false, true, false
+    );
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  function etapa02_sim(){
+    clearTimer();
+    setStageLabel('Etapa 02 parte 2 "sim"');
+
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0401");
+    setTopImage(2, "0203");
+    setTopImage(3, "0301");
+
+    setBtn(top1btn, "continuar", () => etapa02_baratesa());
+    setBtn(top3btn, "continuar", () => etapa02_emporium());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">Loja Baratesa</div>`,
+      `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`,
+      `<div class="bigLabel">Emporium24k</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  function etapa02_emporium(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 3 Emporium24k");
+
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0203");
+    setTopImage(2, "03");
+    setTopImage(3, "0203");
+
+    setBtn(top1btn, "continuar", () => etapa02_emporium_namoro());
+    setBtn(top3btn, "continuar", () => etapa02_emporium_casamento());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">quero um par de anéis de namoro</div>`,
+      `<div class="centerText">Olá como posso te ajudar?</div>`,
+      `<div class="bigLabel">quero um par de anéis de casamento</div>`,
+      true, true, true
+    );
+
+    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
+    startTimer(T_PADRAO, () => etapa01_sim());
+  }
+
+  function etapa02_baratesa(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 3 Loja Baratesa");
+
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0203");
+    setTopImage(2, "04");
+    setTopImage(3, "0203");
+
+    setBtn(top1btn, "continuar", () => etapa02_baratesa_sim());
+    setBtn(top3btn, "continuar", () => etapa02_baratesa_nao());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">sim</div>`,
+      `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`,
+      `<div class="bigLabel">não</div>`,
+      true, true, true
+    );
+
+    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
+    startTimer(T_PADRAO, () => etapa01_sim());
+  }
+
+  function etapa02_emporium_namoro(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 4 namoro Emporium24k");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopPDF(2, "Prata");
+    clearTopMedia(3);
+
+    // LITERAL: voltar vai para Etapa 01 parte 2 botão "sim"
+    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">muito caro</div>`,
+      ``,
+      `<div class="bigLabel">quero comprar</div>`,
+      true, false, true
+    );
+
+    // LITERAL: timeout volta para Etapa 01 parte 3 Emporium24k
+    startTimer(T_PADRAO, () => etapa01_emporium());
+  }
+
+  function etapa02_emporium_casamento(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 4 casamento Emporium24k");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopPDF(2, "Ouro");
+    clearTopMedia(3);
+
+    // LITERAL: voltar vai para Etapa 01 parte 2 botão "sim"
+    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">muito caro</div>`,
+      ``,
+      `<div class="bigLabel">quero comprar</div>`,
+      true, false, true
+    );
+
+    // LITERAL: timeout volta para Etapa 01 parte 3 Emporium24k
+    startTimer(T_PADRAO, () => etapa01_emporium());
+  }
+
+  function etapa02_baratesa_sim(){
+    clearTimer();
+    setStageLabel('Etapa 02 parte 4 "sim" Loja Baratesa');
+
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0205");
+    setTopImage(2, "0208");
+    setTopImage(3, "0206");
+
+    setBtn(top1btn, "continuar", () => inicio()); // desistir -> inicio (Etapa 02 parte 5 Desistir)
+    setBtn(top3btn, "continuar", () => etapa02_voltar_baratesa());
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">Desistir</div>`,
+      `<div class="centerText">FUI TAPEADA</div>`,
+      `<div class="bigLabel">voltar na loja barateza</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => inicio()); // timeout = desistir
+  }
+
+  function etapa02_baratesa_nao(){
+    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
+    etapa01_sim();
+  }
+
+  function etapa02_voltar_baratesa(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 5 voltar na loja barateza");
+
+    show(top1); show(top2); show(top3);
+
+    setTopImage(1, "0206");
+    setTopImage(2, "0402");
+    setTopImage(3, "0205");
+
+    setBtn(top1btn, "continuar", () => etapa02_lutar());
+    setBtn(top3btn, "continuar", () => inicio()); // desistir -> inicio
+    setBtn(top2btn, "", null);
+
+    setBottom(
+      `<div class="bigLabel">LUTAR</div>`,
+      `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`,
+      `<div class="bigLabel">Desistir</div>`,
+      true, true, true
+    );
+
+    startTimer(T_PADRAO, () => inicio()); // timeout = desistir
+  }
+
+  function etapa02_lutar(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 6 LUTAR");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0403");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_final());
+    setBtn(top2btn, "", null);
+
+    setBottom(``, ``, ``, false, false, false);
+
+    startTimer(T_PADRAO, () => etapa02_final());
+  }
+
+  function etapa02_final(){
+    clearTimer();
+    setStageLabel("Etapa 02 parte 7 continuar");
+
+    show(top1); show(top2); show(top3);
+
+    clearTopMedia(1);
+    setTopImage(2, "0207");
+    clearTopMedia(3);
+
+    setBtn(top1btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio());
+    setBtn(top2btn, "", null);
+
+    setBottom(``, ``, ``, false, false, false);
+
+    startTimer(T_PADRAO, () => inicio());
+  }
+
+  /* START */
+  inicio();
+</script>
+</body>
+</html>
