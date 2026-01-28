@@ -148,7 +148,6 @@
       background: transparent !important;
     }
 
-    /* Esconde real (usar só quando quiser remover no mobile, por ex) */
     .isHidden{ display:none !important; }
 
     .bigLabel{
@@ -221,13 +220,13 @@
 
 <script>
   /* CONFIG */
-  const IMG_BASE = "img/";
-  const PDF_BASE = "pdf/";
-  const IMG_EXT  = ".png";            // ✅ todas .png
+  const IMG_BASE = "./";        // ✅ imagens na raiz do repositório
+  const PDF_BASE = "pdf/";      // ✅ se seus PDFs estiverem na raiz, troque para "./"
+  const IMG_EXT  = ".png";      // ✅ todas .png
   const WHATSAPP_NUMBER = "5541998518452";
   const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
-  const TIMER_SECONDS = 60;           // ✅ 60s em tudo
+  const TIMER_SECONDS = 60;     // ✅ 60s em tudo
 
   /* ELEMENTOS */
   const statusStage = document.getElementById("statusStage");
@@ -297,7 +296,6 @@
     btnEl.style.display = label ? "flex" : "none";
     btnEl.onclick = null;
     btnEl.onkeydown = null;
-
     if (!label) return;
 
     const act = () => { if (typeof fn === "function") fn(); };
@@ -306,7 +304,6 @@
   }
 
   function setBottom(htmlLeft, htmlMid, htmlRight, showLeft=true, showMid=true, showRight=true){
-    // em grid-template-areas, esconder com ghost mantém posição
     bot1.classList.toggle("ghost", !showLeft);
     bot2.classList.toggle("ghost", !showMid);
     bot3.classList.toggle("ghost", !showRight);
@@ -326,7 +323,6 @@
     pdfEl.removeAttribute("src");
   }
 
-  // ✅ se imagem falhar, esconde (não aparece texto "top1/top3")
   function safeSetImg(imgEl, src){
     imgEl.classList.remove("isHidden");
     imgEl.onerror = () => {
@@ -364,8 +360,7 @@
   }
 
   /* =========================
-     INÍCIO (esquerda 01 / direita 02, nada no meio)
-     timer: aleatório entre os dois
+     INÍCIO
   ========================= */
   function inicio(){
     clearTimer();
@@ -397,7 +392,6 @@
     clearTimer();
     setStageLabel("Etapa 01");
 
-    // centro 0102, botões sim (esq) e não (dir), nada no meio lateral
     setTopPresence(true, true, true);
     clearTopMedia(1); setTopImage(2, "0102"); clearTopMedia(3);
 
@@ -560,7 +554,7 @@
     setTopImage(2, "0108");
     setTopImage(3, "0106");
 
-    setBtn(top1btn, "continuar", () => inicio());            // desistir
+    setBtn(top1btn, "continuar", () => inicio()); // desistir
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa01_voltar_baratesa());
 
@@ -725,8 +719,7 @@
       true, true, true
     );
 
-    // LITERAL: volta para Etapa 01 parte 2 "sim"
-    startTimer(TIMER_SECONDS, () => etapa01_sim());
+    startTimer(TIMER_SECONDS, () => etapa01_sim()); // literal
   }
 
   function etapa02_baratesa(){
@@ -749,8 +742,7 @@
       true, true, true
     );
 
-    // LITERAL: volta para Etapa 01 parte 2 "sim"
-    startTimer(TIMER_SECONDS, () => etapa01_sim());
+    startTimer(TIMER_SECONDS, () => etapa01_sim()); // literal
   }
 
   function etapa02_emporium_namoro(){
@@ -762,8 +754,7 @@
     setTopPDF(2, "Prata");
     clearTopMedia(3);
 
-    // LITERAL: voltar -> Etapa 01 parte 2 "sim"
-    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top1btn, "voltar", () => etapa01_sim()); // literal
     setBtn(top2btn, "", null);
     setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
@@ -774,8 +765,7 @@
       true, false, true
     );
 
-    // LITERAL: timeout -> Etapa 01 parte 3 Emporium24k
-    startTimer(TIMER_SECONDS, () => etapa01_emporium());
+    startTimer(TIMER_SECONDS, () => etapa01_emporium()); // literal
   }
 
   function etapa02_emporium_casamento(){
@@ -787,7 +777,7 @@
     setTopPDF(2, "Ouro");
     clearTopMedia(3);
 
-    setBtn(top1btn, "voltar", () => etapa01_sim());
+    setBtn(top1btn, "voltar", () => etapa01_sim()); // literal
     setBtn(top2btn, "", null);
     setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
@@ -798,7 +788,7 @@
       true, false, true
     );
 
-    startTimer(TIMER_SECONDS, () => etapa01_emporium());
+    startTimer(TIMER_SECONDS, () => etapa01_emporium()); // literal
   }
 
   function etapa02_baratesa_sim(){
@@ -810,7 +800,7 @@
     setTopImage(2, "0208");
     setTopImage(3, "0206");
 
-    setBtn(top1btn, "continuar", () => inicio()); // desistir
+    setBtn(top1btn, "continuar", () => inicio());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02_voltar_baratesa());
 
@@ -821,12 +811,11 @@
       true, true, true
     );
 
-    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa02_baratesa_nao(){
-    // LITERAL: volta para Etapa 01 parte 2 "sim"
-    etapa01_sim();
+    etapa01_sim(); // literal
   }
 
   function etapa02_voltar_baratesa(){
@@ -840,7 +829,7 @@
 
     setBtn(top1btn, "continuar", () => etapa02_lutar());
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio()); // desistir
+    setBtn(top3btn, "continuar", () => inicio());
 
     setBottom(
       `<div class="bigLabel">LUTAR</div>`,
@@ -849,7 +838,7 @@
       true, true, true
     );
 
-    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa02_lutar(){
