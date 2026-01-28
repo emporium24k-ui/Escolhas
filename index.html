@@ -50,14 +50,27 @@
     }
     .pill strong{font-variant-numeric: tabular-nums;}
 
+    /* === GRID FIXO (não troca posições) === */
     .grid6{
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-areas:
+        "top1 top2 top3"
+        "bot1 bot2 bot3";
       gap: var(--gap);
       align-items:start;
     }
     @media (max-width: 900px){
-      .grid6{ grid-template-columns: 1fr; }
+      .grid6{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "top1"
+          "top2"
+          "top3"
+          "bot1"
+          "bot2"
+          "bot3";
+      }
     }
 
     .panel{
@@ -66,19 +79,22 @@
       overflow:hidden;
       background: rgba(255,255,255,.02);
       box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      min-height: 120px;
     }
 
     /* TOP 3 */
-    .mediaPanel{ position:relative; min-height: 120px; }
+    .mediaPanel{ position:relative; }
     .media{
       width:100%;
       display:block;
       background:#0a0a0a;
     }
+
     .media img{
       width:100%;
       height:auto;
       display:block;
+      background:#0a0a0a;
     }
     .media iframe{
       width:100%;
@@ -114,7 +130,7 @@
     .choiceBtn:active{ transform: translateY(1px); }
 
     /* BOTTOM 3 */
-    .textPanel{ padding:14px 14px 16px; }
+    .textPanel{ padding:14px 14px 16px; min-height: unset; }
     .textPanel p{
       margin:0;
       font-size:18px;
@@ -123,6 +139,16 @@
       word-break: break-word;
     }
 
+    /* Invisível mas mantém posição */
+    .ghost{
+      visibility: hidden !important;
+      pointer-events: none !important;
+      box-shadow:none !important;
+      border-color: transparent !important;
+      background: transparent !important;
+    }
+
+    /* Esconde real (usar só quando quiser remover no mobile, por ex) */
     .isHidden{ display:none !important; }
 
     .bigLabel{
@@ -136,6 +162,14 @@
       line-height:1.35;
       font-weight:900;
     }
+
+    /* Grid-area binds */
+    #top1{ grid-area: top1; }
+    #top2{ grid-area: top2; }
+    #top3{ grid-area: top3; }
+    #bot1{ grid-area: bot1; }
+    #bot2{ grid-area: bot2; }
+    #bot3{ grid-area: bot3; }
   </style>
 </head>
 
@@ -148,34 +182,38 @@
 
     <div class="grid6">
 
-      <!-- TOP 3 -->
+      <!-- TOP 1 -->
       <div class="panel mediaPanel" id="top1">
         <div class="media">
-          <img id="top1img" alt="top1" />
+          <img id="top1img" alt="" />
           <iframe id="top1pdf" title="pdf1" class="isHidden"></iframe>
         </div>
         <div class="choiceBtn" id="top1btn" role="button" tabindex="0">continuar</div>
       </div>
 
+      <!-- TOP 2 -->
       <div class="panel mediaPanel" id="top2">
         <div class="media">
-          <img id="top2img" alt="top2" />
+          <img id="top2img" alt="" />
           <iframe id="top2pdf" title="pdf2" class="isHidden"></iframe>
         </div>
         <div class="choiceBtn" id="top2btn" role="button" tabindex="0">continuar</div>
       </div>
 
+      <!-- TOP 3 -->
       <div class="panel mediaPanel" id="top3">
         <div class="media">
-          <img id="top3img" alt="top3" />
+          <img id="top3img" alt="" />
           <iframe id="top3pdf" title="pdf3" class="isHidden"></iframe>
         </div>
         <div class="choiceBtn" id="top3btn" role="button" tabindex="0">continuar</div>
       </div>
 
-      <!-- BOTTOM 3 -->
+      <!-- BOTTOM 1 -->
       <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
+      <!-- BOTTOM 2 -->
       <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
+      <!-- BOTTOM 3 -->
       <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
 
     </div>
@@ -185,12 +223,11 @@
   /* CONFIG */
   const IMG_BASE = "img/";
   const PDF_BASE = "pdf/";
-  const IMG_EXT  = ".png"; // troque se precisar
+  const IMG_EXT  = ".png";            // ✅ todas .png
   const WHATSAPP_NUMBER = "5541998518452";
   const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 
-  const T_INICIO_RANDOM = 10;
-  const T_PADRAO = 10;
+  const TIMER_SECONDS = 60;           // ✅ 60s em tudo
 
   /* ELEMENTOS */
   const statusStage = document.getElementById("statusStage");
@@ -254,15 +291,14 @@
   function setStageLabel(label){
     statusStage.innerHTML = `Etapa: <strong>${label}</strong>`;
   }
-  function show(el){ el.classList.remove("isHidden"); }
-  function hide(el){ el.classList.add("isHidden"); }
 
   function setBtn(btnEl, label, fn){
-    btnEl.textContent = label;
+    btnEl.textContent = label || "";
     btnEl.style.display = label ? "flex" : "none";
-
     btnEl.onclick = null;
     btnEl.onkeydown = null;
+
+    if (!label) return;
 
     const act = () => { if (typeof fn === "function") fn(); };
     btnEl.onclick = act;
@@ -270,50 +306,80 @@
   }
 
   function setBottom(htmlLeft, htmlMid, htmlRight, showLeft=true, showMid=true, showRight=true){
-    if (showLeft) show(bot1); else hide(bot1);
-    if (showMid) show(bot2); else hide(bot2);
-    if (showRight) show(bot3); else hide(bot3);
-    if (showLeft) bot1p.innerHTML = htmlLeft || "";
-    if (showMid) bot2p.innerHTML = htmlMid || "";
-    if (showRight) bot3p.innerHTML = htmlRight || "";
-  }
+    // em grid-template-areas, esconder com ghost mantém posição
+    bot1.classList.toggle("ghost", !showLeft);
+    bot2.classList.toggle("ghost", !showMid);
+    bot3.classList.toggle("ghost", !showRight);
 
-  function setTopImage(which, name){
-    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
-    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
-    show(imgEl); hide(pdfEl);
-    imgEl.src = IMG_BASE + name + IMG_EXT;
+    bot1p.innerHTML = showLeft ? (htmlLeft || "") : "";
+    bot2p.innerHTML = showMid ? (htmlMid || "") : "";
+    bot3p.innerHTML = showRight ? (htmlRight || "") : "";
   }
 
   function clearTopMedia(which){
     const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
     const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
-    hide(imgEl); hide(pdfEl);
+
+    imgEl.classList.add("isHidden");
+    pdfEl.classList.add("isHidden");
+    imgEl.removeAttribute("src");
+    pdfEl.removeAttribute("src");
+  }
+
+  // ✅ se imagem falhar, esconde (não aparece texto "top1/top3")
+  function safeSetImg(imgEl, src){
+    imgEl.classList.remove("isHidden");
+    imgEl.onerror = () => {
+      imgEl.classList.add("isHidden");
+      imgEl.onerror = null;
+    };
+    imgEl.src = src;
+  }
+
+  function setTopImage(which, name){
+    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
+    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
+
+    pdfEl.classList.add("isHidden");
+    pdfEl.removeAttribute("src");
+
+    safeSetImg(imgEl, IMG_BASE + name + IMG_EXT);
   }
 
   function setTopPDF(which, pdfName){
     const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
     const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
-    hide(imgEl); show(pdfEl);
+
+    imgEl.classList.add("isHidden");
+    imgEl.removeAttribute("src");
+
+    pdfEl.classList.remove("isHidden");
     pdfEl.src = PDF_BASE + pdfName + ".pdf";
   }
 
+  function setTopPresence(show1, show2, show3){
+    top1.classList.toggle("ghost", !show1);
+    top2.classList.toggle("ghost", !show2);
+    top3.classList.toggle("ghost", !show3);
+  }
+
   /* =========================
-     INICIO
+     INÍCIO (esquerda 01 / direita 02, nada no meio)
+     timer: aleatório entre os dois
   ========================= */
   function inicio(){
     clearTimer();
     setStageLabel("inicio");
 
-    show(top1); hide(top2); show(top3);
-
+    setTopPresence(true, false, true);
     setTopImage(1, "01");
+    clearTopMedia(2);
     setTopImage(3, "02");
 
     setBtn(top1btn, "continuar", () => etapa01());
+    setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02());
 
-    // nada no meio
     setBottom(
       `<div class="bigLabel">mulher</div>`,
       ``,
@@ -321,7 +387,7 @@
       true, false, true
     );
 
-    startTimer(T_INICIO_RANDOM, () => (Math.random() < 0.5 ? etapa01() : etapa02()));
+    startTimer(TIMER_SECONDS, () => (Math.random() < 0.5 ? etapa01() : etapa02()));
   }
 
   /* =========================
@@ -331,16 +397,13 @@
     clearTimer();
     setStageLabel("Etapa 01");
 
-    // imagem centro apenas (0102) + botões sim/não nos lados (sem imagens)
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
-    setTopImage(2, "0102");
-    clearTopMedia(3);
+    // centro 0102, botões sim (esq) e não (dir), nada no meio lateral
+    setTopPresence(true, true, true);
+    clearTopMedia(1); setTopImage(2, "0102"); clearTopMedia(3);
 
     setBtn(top1btn, "sim", () => etapa01_sim());
+    setBtn(top2btn, "", null);
     setBtn(top3btn, "não", () => etapa01_nao());
-    setBtn(top2btn, "", null); // sem botão no centro
 
     setBottom(
       ``,
@@ -349,18 +412,15 @@
       false, true, false
     );
 
-    startTimer(T_PADRAO, () => etapa01_nao());
+    startTimer(TIMER_SECONDS, () => etapa01_nao());
   }
 
   function etapa01_nao(){
     clearTimer();
     setStageLabel('Etapa 01 parte 2 "não"');
 
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, false);
     setTopImage(2, "0105");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
@@ -373,23 +433,21 @@
       false, true, false
     );
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa01_sim(){
     clearTimer();
     setStageLabel('Etapa 01 parte 2 "sim"');
 
-    // centro 0103, direita 0301 (Emporium24k), esquerda 0401 (Loja Baratesa)
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0401");
     setTopImage(2, "0103");
     setTopImage(3, "0301");
 
     setBtn(top1btn, "continuar", () => etapa01_baratesa());
-    setBtn(top3btn, "continuar", () => etapa01_emporium());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_emporium());
 
     setBottom(
       `<div class="bigLabel">Loja Baratesa</div>`,
@@ -398,23 +456,21 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa01_emporium(){
     clearTimer();
     setStageLabel("Etapa 01 parte 3 Emporium24k");
 
-    // meio 03, laterais 0103 e 0103
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0103");
     setTopImage(2, "03");
     setTopImage(3, "0103");
 
     setBtn(top1btn, "continuar", () => etapa01_emporium_namoro());
-    setBtn(top3btn, "continuar", () => etapa01_emporium_casamento());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_emporium_casamento());
 
     setBottom(
       `<div class="bigLabel">quero um par de anéis de namoro</div>`,
@@ -423,23 +479,21 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_sim());
+    startTimer(TIMER_SECONDS, () => etapa01_sim());
   }
 
   function etapa01_baratesa(){
     clearTimer();
     setStageLabel("Etapa 01 parte 3 Loja Baratesa");
 
-    // meio 04, laterais 0103 / 0103
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0103");
     setTopImage(2, "04");
     setTopImage(3, "0103");
 
     setBtn(top1btn, "continuar", () => etapa01_baratesa_sim());
-    setBtn(top3btn, "continuar", () => etapa01_baratesa_nao());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_baratesa_nao());
 
     setBottom(
       `<div class="bigLabel">sim</div>`,
@@ -448,23 +502,21 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_sim());
+    startTimer(TIMER_SECONDS, () => etapa01_sim());
   }
 
   function etapa01_emporium_namoro(){
     clearTimer();
     setStageLabel("Etapa 01 parte 4 namoro Emporium24k");
 
-    // PDF Prata no meio, botões em cima (voltar / whatsapp)
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     clearTopMedia(1);
     setTopPDF(2, "Prata");
     clearTopMedia(3);
 
     setBtn(top1btn, "voltar", () => etapa01_sim());
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
     setBottom(
       `<div class="bigLabel">muito caro</div>`,
@@ -473,22 +525,21 @@
       true, false, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_emporium());
+    startTimer(TIMER_SECONDS, () => etapa01_emporium());
   }
 
   function etapa01_emporium_casamento(){
     clearTimer();
     setStageLabel("Etapa 01 parte 4 casamento Emporium24k");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     clearTopMedia(1);
     setTopPDF(2, "Ouro");
     clearTopMedia(3);
 
     setBtn(top1btn, "voltar", () => etapa01_sim());
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
     setBottom(
       `<div class="bigLabel">muito caro</div>`,
@@ -497,23 +548,21 @@
       true, false, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_emporium());
+    startTimer(TIMER_SECONDS, () => etapa01_emporium());
   }
 
   function etapa01_baratesa_sim(){
     clearTimer();
     setStageLabel('Etapa 01 parte 4 "sim" Loja Baratesa');
 
-    // meio 0108, direita 0106 voltar loja, esquerda 0105 desistir
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0105");
     setTopImage(2, "0108");
     setTopImage(3, "0106");
 
-    setBtn(top1btn, "continuar", () => etapa01_desistir());
-    setBtn(top3btn, "continuar", () => etapa01_voltar_baratesa());
+    setBtn(top1btn, "continuar", () => inicio());            // desistir
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_voltar_baratesa());
 
     setBottom(
       `<div class="bigLabel">Desistir</div>`,
@@ -522,33 +571,25 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_desistir());
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
   function etapa01_baratesa_nao(){
-    // volta para Etapa 01 parte 2 botão "sim"
     etapa01_sim();
-  }
-
-  function etapa01_desistir(){
-    // Etapa 01 parte 5 botão Desistir: volta para o inicio
-    inicio();
   }
 
   function etapa01_voltar_baratesa(){
     clearTimer();
     setStageLabel("Etapa 01 parte 5 voltar na loja barateza");
 
-    // meio 0402, esquerda 0106 LUTAR, direita 0105 Desistir
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0106");
     setTopImage(2, "0402");
     setTopImage(3, "0105");
 
     setBtn(top1btn, "continuar", () => etapa01_lutar());
-    setBtn(top3btn, "continuar", () => etapa01_desistir());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio()); // desistir
 
     setBottom(
       `<div class="bigLabel">LUTAR</div>`,
@@ -557,47 +598,41 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => etapa01_desistir());
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
   function etapa01_lutar(){
     clearTimer();
     setStageLabel("Etapa 01 parte 6 LUTAR");
 
-    // meio 0403, só botão na direita continuar (timer => continuar)
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, true);
     setTopImage(2, "0403");
     clearTopMedia(3);
 
     setBtn(top1btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_final());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa01_final());
 
     setBottom(``, ``, ``, false, false, false);
 
-    startTimer(T_PADRAO, () => etapa01_final());
+    startTimer(TIMER_SECONDS, () => etapa01_final());
   }
 
   function etapa01_final(){
     clearTimer();
     setStageLabel("Etapa 01 parte 7 continuar");
 
-    // meio 0107, só botão direita continuar (leva ao início)
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, true);
     setTopImage(2, "0107");
     clearTopMedia(3);
 
     setBtn(top1btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio());
 
     setBottom(``, ``, ``, false, false, false);
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   /* =========================
@@ -607,15 +642,14 @@
     clearTimer();
     setStageLabel("Etapa 02");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     clearTopMedia(1);
     setTopImage(2, "0202");
     clearTopMedia(3);
 
     setBtn(top1btn, "sim", () => etapa02_sim());
-    setBtn(top3btn, "não", () => etapa02_nao());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "não", () => etapa02_nao());
 
     setBottom(
       ``,
@@ -624,18 +658,15 @@
       false, true, false
     );
 
-    startTimer(T_PADRAO, () => etapa02_nao());
+    startTimer(TIMER_SECONDS, () => etapa02_nao());
   }
 
   function etapa02_nao(){
     clearTimer();
     setStageLabel('Etapa 02 parte 2 "não"');
 
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, false);
     setTopImage(2, "0205");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
@@ -648,22 +679,21 @@
       false, true, false
     );
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa02_sim(){
     clearTimer();
     setStageLabel('Etapa 02 parte 2 "sim"');
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0401");
     setTopImage(2, "0203");
     setTopImage(3, "0301");
 
     setBtn(top1btn, "continuar", () => etapa02_baratesa());
-    setBtn(top3btn, "continuar", () => etapa02_emporium());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_emporium());
 
     setBottom(
       `<div class="bigLabel">Loja Baratesa</div>`,
@@ -672,22 +702,21 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   function etapa02_emporium(){
     clearTimer();
     setStageLabel("Etapa 02 parte 3 Emporium24k");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0203");
     setTopImage(2, "03");
     setTopImage(3, "0203");
 
     setBtn(top1btn, "continuar", () => etapa02_emporium_namoro());
-    setBtn(top3btn, "continuar", () => etapa02_emporium_casamento());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_emporium_casamento());
 
     setBottom(
       `<div class="bigLabel">quero um par de anéis de namoro</div>`,
@@ -696,23 +725,22 @@
       true, true, true
     );
 
-    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
-    startTimer(T_PADRAO, () => etapa01_sim());
+    // LITERAL: volta para Etapa 01 parte 2 "sim"
+    startTimer(TIMER_SECONDS, () => etapa01_sim());
   }
 
   function etapa02_baratesa(){
     clearTimer();
     setStageLabel("Etapa 02 parte 3 Loja Baratesa");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0203");
     setTopImage(2, "04");
     setTopImage(3, "0203");
 
     setBtn(top1btn, "continuar", () => etapa02_baratesa_sim());
-    setBtn(top3btn, "continuar", () => etapa02_baratesa_nao());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_baratesa_nao());
 
     setBottom(
       `<div class="bigLabel">sim</div>`,
@@ -721,24 +749,23 @@
       true, true, true
     );
 
-    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
-    startTimer(T_PADRAO, () => etapa01_sim());
+    // LITERAL: volta para Etapa 01 parte 2 "sim"
+    startTimer(TIMER_SECONDS, () => etapa01_sim());
   }
 
   function etapa02_emporium_namoro(){
     clearTimer();
     setStageLabel("Etapa 02 parte 4 namoro Emporium24k");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     clearTopMedia(1);
     setTopPDF(2, "Prata");
     clearTopMedia(3);
 
-    // LITERAL: voltar vai para Etapa 01 parte 2 botão "sim"
+    // LITERAL: voltar -> Etapa 01 parte 2 "sim"
     setBtn(top1btn, "voltar", () => etapa01_sim());
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
     setBottom(
       `<div class="bigLabel">muito caro</div>`,
@@ -747,24 +774,22 @@
       true, false, true
     );
 
-    // LITERAL: timeout volta para Etapa 01 parte 3 Emporium24k
-    startTimer(T_PADRAO, () => etapa01_emporium());
+    // LITERAL: timeout -> Etapa 01 parte 3 Emporium24k
+    startTimer(TIMER_SECONDS, () => etapa01_emporium());
   }
 
   function etapa02_emporium_casamento(){
     clearTimer();
     setStageLabel("Etapa 02 parte 4 casamento Emporium24k");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     clearTopMedia(1);
     setTopPDF(2, "Ouro");
     clearTopMedia(3);
 
-    // LITERAL: voltar vai para Etapa 01 parte 2 botão "sim"
     setBtn(top1btn, "voltar", () => etapa01_sim());
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
 
     setBottom(
       `<div class="bigLabel">muito caro</div>`,
@@ -773,23 +798,21 @@
       true, false, true
     );
 
-    // LITERAL: timeout volta para Etapa 01 parte 3 Emporium24k
-    startTimer(T_PADRAO, () => etapa01_emporium());
+    startTimer(TIMER_SECONDS, () => etapa01_emporium());
   }
 
   function etapa02_baratesa_sim(){
     clearTimer();
     setStageLabel('Etapa 02 parte 4 "sim" Loja Baratesa');
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0205");
     setTopImage(2, "0208");
     setTopImage(3, "0206");
 
-    setBtn(top1btn, "continuar", () => inicio()); // desistir -> inicio (Etapa 02 parte 5 Desistir)
-    setBtn(top3btn, "continuar", () => etapa02_voltar_baratesa());
+    setBtn(top1btn, "continuar", () => inicio()); // desistir
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_voltar_baratesa());
 
     setBottom(
       `<div class="bigLabel">Desistir</div>`,
@@ -798,11 +821,11 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => inicio()); // timeout = desistir
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
   function etapa02_baratesa_nao(){
-    // LITERAL: volta para Etapa 01 parte 2 botão "sim"
+    // LITERAL: volta para Etapa 01 parte 2 "sim"
     etapa01_sim();
   }
 
@@ -810,15 +833,14 @@
     clearTimer();
     setStageLabel("Etapa 02 parte 5 voltar na loja barateza");
 
-    show(top1); show(top2); show(top3);
-
+    setTopPresence(true, true, true);
     setTopImage(1, "0206");
     setTopImage(2, "0402");
     setTopImage(3, "0205");
 
     setBtn(top1btn, "continuar", () => etapa02_lutar());
-    setBtn(top3btn, "continuar", () => inicio()); // desistir -> inicio
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio()); // desistir
 
     setBottom(
       `<div class="bigLabel">LUTAR</div>`,
@@ -827,45 +849,41 @@
       true, true, true
     );
 
-    startTimer(T_PADRAO, () => inicio()); // timeout = desistir
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
   function etapa02_lutar(){
     clearTimer();
     setStageLabel("Etapa 02 parte 6 LUTAR");
 
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, true);
     setTopImage(2, "0403");
     clearTopMedia(3);
 
     setBtn(top1btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_final());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => etapa02_final());
 
     setBottom(``, ``, ``, false, false, false);
 
-    startTimer(T_PADRAO, () => etapa02_final());
+    startTimer(TIMER_SECONDS, () => etapa02_final());
   }
 
   function etapa02_final(){
     clearTimer();
     setStageLabel("Etapa 02 parte 7 continuar");
 
-    show(top1); show(top2); show(top3);
-
-    clearTopMedia(1);
+    setTopPresence(false, true, true);
     setTopImage(2, "0207");
     clearTopMedia(3);
 
     setBtn(top1btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
     setBtn(top2btn, "", null);
+    setBtn(top3btn, "continuar", () => inicio());
 
     setBottom(``, ``, ``, false, false, false);
 
-    startTimer(T_PADRAO, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
   /* START */
