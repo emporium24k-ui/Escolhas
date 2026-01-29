@@ -223,10 +223,11 @@ body{
     object-fit:contain;
   }
 
-  /* ✅ texto sempre visível */
+  /* ✅ texto sempre visível e bem espaçado */
   .caption{
     display:block;
     padding:14px 14px 10px 14px;
+    word-break:break-word;
   }
 
   /* ✅ botão NÃO é absoluto no mobile (nunca cobre texto) */
@@ -707,7 +708,32 @@ function etapa01_baratesa_q(){
 function etapa01_pdf_prata(){ showPdf("Prata", etapa01_tipo); }
 function etapa01_pdf_ouro(){ showPdf("Ouro", etapa01_tipo); }
 
+/* ✅ FIX MOBILE: TAPEADA (Baratesa SIM) */
 function etapa01_tapeada(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"0108",
+      img1:"0105",
+      img3:"0106",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>FUI TAPEADA</div>",
+      cap1:"<div class='bigLabel'>Desistir</div>",
+      cap3:"<div class='bigLabel'>voltar na loja barateza</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: inicio,
+      topBtn3Action: etapa01_aviso,
+
+      onTimeout: inicio
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"0108",
@@ -717,14 +743,39 @@ function etapa01_tapeada(){
     bottom1:"<div class='bigLabel'>Desistir</div>",
     bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
     topBtn1Label:"continuar",
-    topBtn1Action: inicio,
     topBtn3Label:"continuar",
+    topBtn1Action: inicio,
     topBtn3Action: etapa01_aviso,
     onTimeout: inicio
   });
 }
 
+/* ✅ FIX MOBILE: AVISO (voltar na loja barateza) */
 function etapa01_aviso(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"0402",
+      img1:"0106",
+      img3:"0105",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+      cap1:"<div class='bigLabel'>LUTAR</div>",
+      cap3:"<div class='bigLabel'>Desistir</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa01_luta1,
+      topBtn3Action: inicio,
+
+      onTimeout: inicio
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"0402",
@@ -734,8 +785,8 @@ function etapa01_aviso(){
     bottom1:"<div class='bigLabel'>LUTAR</div>",
     bottom3:"<div class='bigLabel'>Desistir</div>",
     topBtn1Label:"continuar",
-    topBtn1Action: etapa01_luta1,
     topBtn3Label:"continuar",
+    topBtn1Action: etapa01_luta1,
     topBtn3Action: inicio,
     onTimeout: inicio
   });
@@ -923,7 +974,32 @@ function etapa02_baratesa_q(){
 function etapa02_pdf_prata(){ showPdf("Prata", etapa02_tipo); }
 function etapa02_pdf_ouro(){ showPdf("Ouro", etapa02_tipo); }
 
+/* ✅ FIX MOBILE: TAPEADO (Baratesa SIM) */
 function etapa02_tapeado(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"0208",
+      img1:"0205",
+      img3:"0206",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>FUI TAPEADO</div>",
+      cap1:"<div class='bigLabel'>Desistir</div>",
+      cap3:"<div class='bigLabel'>voltar na loja barateza</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: inicio,
+      topBtn3Action: etapa02_aviso,
+
+      onTimeout: inicio
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"0208",
@@ -933,14 +1009,39 @@ function etapa02_tapeado(){
     bottom1:"<div class='bigLabel'>Desistir</div>",
     bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
     topBtn1Label:"continuar",
-    topBtn1Action: inicio,
     topBtn3Label:"continuar",
+    topBtn1Action: inicio,
     topBtn3Action: etapa02_aviso,
     onTimeout: inicio
   });
 }
 
+/* ✅ FIX MOBILE: AVISO (voltar na loja barateza) */
 function etapa02_aviso(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"0402",
+      img1:"0206",
+      img3:"0205",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+      cap1:"<div class='bigLabel'>LUTAR</div>",
+      cap3:"<div class='bigLabel'>Desistir</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa02_luta1,
+      topBtn3Action: inicio,
+
+      onTimeout: inicio
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"0402",
@@ -950,8 +1051,8 @@ function etapa02_aviso(){
     bottom1:"<div class='bigLabel'>LUTAR</div>",
     bottom3:"<div class='bigLabel'>Desistir</div>",
     topBtn1Label:"continuar",
-    topBtn1Action: etapa02_luta1,
     topBtn3Label:"continuar",
+    topBtn1Action: etapa02_luta1,
     topBtn3Action: inicio,
     onTimeout: inicio
   });
