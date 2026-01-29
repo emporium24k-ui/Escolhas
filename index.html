@@ -62,22 +62,23 @@ body{
 .hidden{display:none!important;}
 
 .mediaPanel{position:relative; min-height:220px;}
-/* ✅ Desktop: card mais alto e imagem preenche */
+
+/* ✅ Desktop: imagem realmente grande */
 .media{
-  height:62vh;
-  min-height:360px;
+  height:66vh;
+  min-height:380px;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:10px;
+  padding:0;               /* ✅ remove padding que encolhia visualmente */
 }
 .media img{
   display:block;
   width:100%;
   height:100%;
-  max-width:100%;
-  max-height:none;      /* ✅ remove limite no PC */
-  object-fit:contain;   /* mantém inteiro sem cortar */
+  max-width:none;
+  max-height:none;
+  object-fit:contain;
 }
 
 .caption{
@@ -137,7 +138,7 @@ body{
 #bot2{grid-area:bot2}
 #bot3{grid-area:bot3}
 
-/* PDF ocupa topo todo */
+/* PDF */
 .pdfFull{
   grid-area:top1 / top1 / top3 / top3;
   border:1px solid var(--border);
@@ -190,15 +191,15 @@ body{
       "bot3";
   }
 
-  /* ✅ Mobile: volta a ser menor, e limita altura */
   .media{
     height:auto;
     min-height:260px;
+    padding:10px;
   }
   .media img{
     width:100%;
     height:auto;
-    max-height:52vh; /* só no mobile */
+    max-height:58vh;
     object-fit:contain;
   }
 
@@ -236,7 +237,6 @@ body{
       <div class="choiceBtn" id="top3btn"></div>
     </div>
 
-    <!-- PDF -->
     <div class="pdfFull hidden" id="pdfWrap">
       <div class="pdfAction left" id="pdfBack">voltar</div>
       <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
@@ -506,18 +506,20 @@ function inicio(){
   });
 }
 
-/* ETAPA 01 */
+/* ✅ ETAPA 01 — CORRIGIDO: botões SIM/NÃO VISÍVEIS */
 function etapa01_q1(){
   renderScreen({
-    mode:"center",
+    mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0102",
-    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+
     bottomBtn1Label:"sim",
-    bottomBtn3Label:"não",
     bottomBtn1Action: etapa01_tipo,
+
+    bottomBtn3Label:"não",
     bottomBtn3Action: etapa01_nao_end,
+
     onTimeout: etapa01_nao_end
   });
 }
@@ -645,18 +647,20 @@ function etapa01_luta2(){
   });
 }
 
-/* ETAPA 02 */
+/* ✅ ETAPA 02 — CORRIGIDO: botões SIM/NÃO VISÍVEIS */
 function etapa02_q1(){
   renderScreen({
-    mode:"center",
+    mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0202",
-    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+
     bottomBtn1Label:"sim",
-    bottomBtn3Label:"não",
     bottomBtn1Action: etapa02_tipo,
+
+    bottomBtn3Label:"não",
     bottomBtn3Action: etapa02_nao_end,
+
     onTimeout: etapa02_nao_end
   });
 }
