@@ -31,6 +31,7 @@ body{
   padding:14px;
 }
 .wrap{max-width:1180px;margin:0 auto}
+
 .grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -59,12 +60,11 @@ body{
   background:var(--panel);
   overflow:hidden;
 }
-
 .hidden{display:none!important;}
 
 .mediaPanel{position:relative; min-height:220px;}
 
-/* ✅ FIX DO BUG: imagem nunca estoura a tela */
+/* ✅ FIX: imagem nunca estoura */
 .media{
   min-height:220px;
   display:flex;
@@ -75,15 +75,15 @@ body{
 .media img{
   display:block;
   max-width:100%;
-  max-height:58vh;   /* <-- aqui resolve a imagem gigante */
+  max-height:58vh;
   width:auto;
   height:auto;
   object-fit:contain;
 }
 
 .caption{
-  display:none; /* desktop: texto embaixo */
-  padding:14px 14px 78px 14px; /* espaço pro botão */
+  display:none; /* mobile usa */
+  padding:14px 14px 18px 14px;
   border-top:1px solid rgba(255,255,255,.10);
   font-size:18px; line-height:1.35;
 }
@@ -107,13 +107,33 @@ body{
 .choiceBtn:active{transform:translateY(2px)}
 
 .textPanel{padding:16px}
-.textPanel p{margin:0;font-size:18px;line-height:1.35}
+.textPanel .slot{margin:0;font-size:18px;line-height:1.35}
 
 .bigLabel{font-size:22px;font-weight:900}
 .centerText{text-align:center;font-size:20px;font-weight:900}
 .smallHint{opacity:.85;font-size:16px}
 
-/* IDs de grid */
+/* ✅ botões de escolha embaixo (pra não sumir quando top1/top3 escondem) */
+.bottomChoice{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  padding:18px 14px;
+  border-radius:14px;
+  background:linear-gradient(180deg,var(--gold1),var(--gold2));
+  color:var(--goldText);
+  border:1px solid var(--goldBorder);
+  box-shadow:0 10px 28px rgba(0,0,0,.65), 0 0 28px var(--glow);
+  font-weight:950;
+  text-transform:uppercase;
+  cursor:pointer;
+  user-select:none;
+}
+.bottomChoice:hover{filter:brightness(1.06)}
+.bottomChoice:active{transform:translateY(2px)}
+
+/* grid areas */
 #top1{grid-area:top1}
 #top2{grid-area:top2}
 #top3{grid-area:top3}
@@ -153,7 +173,7 @@ body{
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 
-/* MOBILE: 1 coluna, texto vai dentro do card */
+/* MOBILE */
 @media (max-width:900px){
   body{padding:10px}
   .grid, .grid.twoCols, .grid.centerOnly{
@@ -166,15 +186,11 @@ body{
       "bot2"
       "bot3";
   }
-
   .mediaPanel{min-height:260px;}
   .media{min-height:260px;}
-  .media img{max-height:52vh;} /* mobile um pouco menor */
-
-  .textPanel{display:none;}
+  .media img{max-height:52vh;}
   .caption{display:block;}
-  .choiceBtn{padding:18px;font-size:18px;border-radius:16px}
-
+  .textPanel{padding:14px}
   .pdfFull{min-height:78vh;}
   .pdfFull iframe{height:78vh;}
   .pdfAction{padding:16px 16px;font-size:16px;border-radius:16px}
@@ -212,14 +228,17 @@ body{
       <iframe id="pdfFrame" title="PDF"></iframe>
     </div>
 
-    <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
-    <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
-    <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
+    <div class="panel textPanel" id="bot1"><div class="slot" id="bot1slot"></div></div>
+    <div class="panel textPanel" id="bot2"><div class="slot" id="bot2slot"></div></div>
+    <div class="panel textPanel" id="bot3"><div class="slot" id="bot3slot"></div></div>
 
   </div>
 </div>
 
 <script>
+/* =========================
+   CONFIG
+========================= */
 const TIMER_MS = 60000; // 60s (exceto PDF)
 const WHATS = "https://wa.me/5541998518452";
 
@@ -231,6 +250,9 @@ const PDFJS_VIEWER_CANDIDATES = [
   "./pdfjs/viewer.html"
 ];
 
+/* =========================
+   DOM
+========================= */
 const grid = document.getElementById("grid");
 
 const top1 = document.getElementById("top1");
@@ -249,9 +271,9 @@ const cap1 = document.getElementById("cap1");
 const cap2 = document.getElementById("cap2");
 const cap3 = document.getElementById("cap3");
 
-const bot1 = document.getElementById("bot1p");
-const bot2 = document.getElementById("bot2p");
-const bot3 = document.getElementById("bot3p");
+const bot1slot = document.getElementById("bot1slot");
+const bot2slot = document.getElementById("bot2slot");
+const bot3slot = document.getElementById("bot3slot");
 
 const bot1Panel = document.getElementById("bot1");
 const bot2Panel = document.getElementById("bot2");
@@ -264,6 +286,9 @@ const pdfWhats = document.getElementById("pdfWhats");
 
 let timer = null;
 
+/* =========================
+   HELPERS
+========================= */
 function clearT(){ if(timer) clearTimeout(timer); timer=null; }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER_MS); }
 
@@ -286,7 +311,7 @@ function setImg(imgEl, src){
   imgEl.src = src || "";
 }
 
-function setBtn(btnEl, label, fn){
+function setTopBtn(btnEl, label, fn){
   btnEl.onclick = null;
   if(!label){
     btnEl.textContent="";
@@ -298,15 +323,21 @@ function setBtn(btnEl, label, fn){
   btnEl.onclick = fn;
 }
 
-function setText(slot, html){
-  const v = html || "";
-  if(slot===1){ bot1.innerHTML=v; cap1.innerHTML=v; }
-  if(slot===2){ bot2.innerHTML=v; cap2.innerHTML=v; }
-  if(slot===3){ bot3.innerHTML=v; cap3.innerHTML=v; }
+function setBottomHTML(slotEl, html){
+  slotEl.innerHTML = html || "";
+}
+function setBottomButton(slotEl, label, fn){
+  slotEl.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "bottomChoice";
+  div.textContent = label.toUpperCase();
+  div.onclick = fn;
+  slotEl.appendChild(div);
 }
 
 function resetAll(){
   clearT();
+
   hide(pdfWrap);
   pdfFrame.removeAttribute("src");
 
@@ -315,11 +346,17 @@ function resetAll(){
 
   setGridMode("three");
 
-  setBtn(b1,"",null); setBtn(b2,"",null); setBtn(b3,"",null);
-  setText(1,""); setText(2,""); setText(3,"");
+  setTopBtn(b1,"",null); setTopBtn(b2,"",null); setTopBtn(b3,"",null);
+
+  cap1.textContent=""; cap2.textContent=""; cap3.textContent="";
+  setBottomHTML(bot1slot,""); setBottomHTML(bot2slot,""); setBottomHTML(bot3slot,"");
+
   setImg(t1,""); setImg(t2,""); setImg(t3,"");
 }
 
+/* =========================
+   PDF FIX
+========================= */
 function siteBase(){
   const u = new URL(window.location.href);
   u.hash = ""; u.search = "";
@@ -349,6 +386,7 @@ function pdfUrl(name){
 
 function showPdf(name, onBack){
   clearT(); // sem timer em PDF
+
   hide(top1); hide(top2); hide(top3);
   show(pdfWrap);
 
@@ -358,15 +396,20 @@ function showPdf(name, onBack){
   pdfWhats.onclick = () => window.location.href = WHATS;
 }
 
+/* =========================
+   RENDER ENGINE
+========================= */
 function renderScreen(screen){
   resetAll();
   setGridMode(screen.mode || "three");
 
   if(screen.type==="pdf"){
-    if(screen.text1) setText(1, screen.text1);
-    if(screen.text2) setText(2, screen.text2);
-    if(screen.text3) setText(3, screen.text3);
-    if(!screen.text2) hide(bot2Panel);
+    // textos embaixo
+    if(screen.bottom1) setBottomHTML(bot1slot, screen.bottom1);
+    if(screen.bottom2) setBottomHTML(bot2slot, screen.bottom2);
+    if(screen.bottom3) setBottomHTML(bot3slot, screen.bottom3);
+    if(!screen.bottom2) hide(bot2Panel);
+
     showPdf(screen.pdfName, screen.onBack);
     return;
   }
@@ -383,14 +426,26 @@ function renderScreen(screen){
   if(screen.img2) setImg(t2, img(screen.img2));
   if(screen.img3) setImg(t3, img(screen.img3));
 
-  setText(1, screen.text1 || "");
-  setText(2, screen.text2 || "");
-  setText(3, screen.text3 || "");
+  // top buttons (continuar etc.)
+  setTopBtn(b1, screen.topBtn1Label || "", screen.topBtn1Action || null);
+  setTopBtn(b2, screen.topBtn2Label || "", screen.topBtn2Action || null);
+  setTopBtn(b3, screen.topBtn3Label || "", screen.topBtn3Action || null);
 
-  setBtn(b1, screen.btn1Label || "", screen.btn1Action || null);
-  setBtn(b2, screen.btn2Label || "", screen.btn2Action || null);
-  setBtn(b3, screen.btn3Label || "", screen.btn3Action || null);
+  // bottom slots
+  setBottomHTML(bot1slot, screen.bottom1 || "");
+  setBottomHTML(bot2slot, screen.bottom2 || "");
+  setBottomHTML(bot3slot, screen.bottom3 || "");
 
+  if(typeof screen.bottomBtn1Action === "function") setBottomButton(bot1slot, screen.bottomBtn1Label, screen.bottomBtn1Action);
+  if(typeof screen.bottomBtn2Action === "function") setBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
+  if(typeof screen.bottomBtn3Action === "function") setBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
+
+  // captions mobile
+  cap1.innerHTML = screen.cap1 || screen.bottom1 || "";
+  cap2.innerHTML = screen.cap2 || screen.bottom2 || "";
+  cap3.innerHTML = screen.cap3 || screen.bottom3 || "";
+
+  // timer
   if(screen.timer===false){
     clearT();
   }else if(typeof screen.onTimeout==="function"){
@@ -398,7 +453,11 @@ function renderScreen(screen){
   }
 }
 
-/* ===== FLUXO COMPLETO ===== */
+/* =========================
+   FLOW (EXATAMENTE COMO VOCÊ DEFINIU)
+========================= */
+
+/* INICIO */
 function inicio(){
   renderScreen({
     mode:"two",
@@ -406,28 +465,28 @@ function inicio(){
     hideBot2:true,
     img1:"01",
     img3:"02",
-    text1:"<div class='bigLabel'>mulher</div>",
-    text3:"<div class='bigLabel'>homem</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa01_q1,
-    btn3Action: etapa02_q1,
+    bottom1:"<div class='bigLabel'>mulher</div>",
+    bottom3:"<div class='bigLabel'>homem</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa01_q1,
+    topBtn3Action: etapa02_q1,
     onTimeout: () => (Math.random()<0.5 ? etapa01_q1() : etapa02_q1())
   });
 }
 
-/* ETAPA 01 */
+/* ===== ETAPA 01 ===== */
 function etapa01_q1(){
+  // ✅ imagem só no centro em cima, opções embaixo esquerda/direita
   renderScreen({
-    mode:"center",
-    img2:"0102",
-    text2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    btn1Label:"sim",
-    btn3Label:"não",
+    mode:"three",
     hideTop1:true, hideTop3:true,
-    hideBot1:true, hideBot3:true,
-    btn1Action: etapa01_tipo,
-    btn3Action: etapa01_nao_end,
+    img2:"0102",
+    bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    bottomBtn1Label:"sim",
+    bottomBtn3Label:"não",
+    bottomBtn1Action: etapa01_tipo,
+    bottomBtn3Action: etapa01_nao_end,
     onTimeout: etapa01_nao_end
   });
 }
@@ -436,9 +495,9 @@ function etapa01_nao_end(){
   renderScreen({
     mode:"center",
     img2:"0105",
-    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
+    bottom2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     onTimeout: inicio
   });
 }
@@ -449,13 +508,13 @@ function etapa01_tipo(){
     img1:"0401",
     img2:"0103",
     img3:"0301",
-    text1:"<div class='bigLabel'>Loja Baratesa</div>",
-    text2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
-    text3:"<div class='bigLabel'>Emporium24k</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa01_baratesa_q,
-    btn3Action: etapa01_emporium_q,
+    bottom1:"<div class='bigLabel'>Loja Baratesa</div>",
+    bottom2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
+    bottom3:"<div class='bigLabel'>Emporium24k</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa01_baratesa_q,
+    topBtn3Action: etapa01_emporium_q,
     onTimeout: inicio
   });
 }
@@ -466,13 +525,13 @@ function etapa01_emporium_q(){
     img2:"03",
     img1:"0103",
     img3:"0103",
-    text2:"<div class='centerText'>Olá como posso te ajudar?</div>",
-    text1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
-    text3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa01_pdf_prata,
-    btn3Action: etapa01_pdf_ouro,
+    bottom2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+    bottom1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+    bottom3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa01_pdf_prata,
+    topBtn3Action: etapa01_pdf_ouro,
     onTimeout: etapa01_tipo
   });
 }
@@ -483,13 +542,13 @@ function etapa01_baratesa_q(){
     img2:"04",
     img1:"0103",
     img3:"0103",
-    text2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
-    text1:"<div class='bigLabel'>sim</div>",
-    text3:"<div class='bigLabel'>não</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa01_tapeada,
-    btn3Action: etapa01_tipo,
+    bottom2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+    bottom1:"<div class='bigLabel'>sim</div>",
+    bottom3:"<div class='bigLabel'>não</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa01_tapeada,
+    topBtn3Action: etapa01_tipo,
     onTimeout: etapa01_tipo
   });
 }
@@ -498,8 +557,8 @@ function etapa01_pdf_prata(){
   renderScreen({
     type:"pdf",
     pdfName:"Prata",
-    text1:"<div class='bigLabel'>muito caro</div>",
-    text3:"<div class='bigLabel'>quero comprar</div>",
+    bottom1:"<div class='bigLabel'>muito caro</div>",
+    bottom3:"<div class='bigLabel'>quero comprar</div>",
     onBack: etapa01_tipo
   });
 }
@@ -507,8 +566,8 @@ function etapa01_pdf_ouro(){
   renderScreen({
     type:"pdf",
     pdfName:"Ouro",
-    text1:"<div class='bigLabel'>muito caro</div>",
-    text3:"<div class='bigLabel'>quero comprar</div>",
+    bottom1:"<div class='bigLabel'>muito caro</div>",
+    bottom3:"<div class='bigLabel'>quero comprar</div>",
     onBack: etapa01_tipo
   });
 }
@@ -519,13 +578,13 @@ function etapa01_tapeada(){
     img2:"0108",
     img1:"0105",
     img3:"0106",
-    text2:"<div class='centerText'>FUI TAPEADA</div>",
-    text1:"<div class='bigLabel'>Desistir</div>",
-    text3:"<div class='bigLabel'>voltar na loja barateza</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: inicio,
-    btn3Action: etapa01_aviso,
+    bottom2:"<div class='centerText'>FUI TAPEADA</div>",
+    bottom1:"<div class='bigLabel'>Desistir</div>",
+    bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: inicio,
+    topBtn3Action: etapa01_aviso,
     onTimeout: inicio
   });
 }
@@ -536,13 +595,13 @@ function etapa01_aviso(){
     img2:"0402",
     img1:"0106",
     img3:"0105",
-    text2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
-    text1:"<div class='bigLabel'>LUTAR</div>",
-    text3:"<div class='bigLabel'>Desistir</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa01_luta1,
-    btn3Action: inicio,
+    bottom2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+    bottom1:"<div class='bigLabel'>LUTAR</div>",
+    bottom3:"<div class='bigLabel'>Desistir</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa01_luta1,
+    topBtn3Action: inicio,
     onTimeout: inicio
   });
 }
@@ -553,8 +612,8 @@ function etapa01_luta1(){
     img2:"0403",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    btn2Label:"continuar",
-    btn2Action: etapa01_luta2,
+    topBtn2Label:"continuar",
+    topBtn2Action: etapa01_luta2,
     onTimeout: etapa01_luta2
   });
 }
@@ -565,24 +624,23 @@ function etapa01_luta2(){
     img2:"0107",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    btn2Label:"continuar",
-    btn2Action: inicio,
+    topBtn2Label:"continuar",
+    topBtn2Action: inicio,
     onTimeout: inicio
   });
 }
 
-/* ETAPA 02 */
+/* ===== ETAPA 02 ===== */
 function etapa02_q1(){
   renderScreen({
-    mode:"center",
-    img2:"0202",
-    text2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    btn1Label:"sim",
-    btn3Label:"não",
+    mode:"three",
     hideTop1:true, hideTop3:true,
-    hideBot1:true, hideBot3:true,
-    btn1Action: etapa02_tipo,
-    btn3Action: etapa02_nao_end,
+    img2:"0202",
+    bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    bottomBtn1Label:"sim",
+    bottomBtn3Label:"não",
+    bottomBtn1Action: etapa02_tipo,
+    bottomBtn3Action: etapa02_nao_end,
     onTimeout: etapa02_nao_end
   });
 }
@@ -591,9 +649,9 @@ function etapa02_nao_end(){
   renderScreen({
     mode:"center",
     img2:"0205",
-    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
+    bottom2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     onTimeout: inicio
   });
 }
@@ -604,13 +662,13 @@ function etapa02_tipo(){
     img1:"0401",
     img2:"0203",
     img3:"0301",
-    text1:"<div class='bigLabel'>Loja Baratesa</div>",
-    text2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
-    text3:"<div class='bigLabel'>Emporium24k</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa02_baratesa_q,
-    btn3Action: etapa02_emporium_q,
+    bottom1:"<div class='bigLabel'>Loja Baratesa</div>",
+    bottom2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
+    bottom3:"<div class='bigLabel'>Emporium24k</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa02_baratesa_q,
+    topBtn3Action: etapa02_emporium_q,
     onTimeout: inicio
   });
 }
@@ -621,13 +679,13 @@ function etapa02_emporium_q(){
     img2:"03",
     img1:"0203",
     img3:"0203",
-    text2:"<div class='centerText'>Olá como posso te ajudar?</div>",
-    text1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
-    text3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa02_pdf_prata,
-    btn3Action: etapa02_pdf_ouro,
+    bottom2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+    bottom1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+    bottom3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa02_pdf_prata,
+    topBtn3Action: etapa02_pdf_ouro,
     onTimeout: etapa02_tipo
   });
 }
@@ -638,13 +696,13 @@ function etapa02_baratesa_q(){
     img2:"04",
     img1:"0203",
     img3:"0203",
-    text2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
-    text1:"<div class='bigLabel'>sim</div>",
-    text3:"<div class='bigLabel'>não</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa02_tapeado,
-    btn3Action: etapa02_tipo,
+    bottom2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+    bottom1:"<div class='bigLabel'>sim</div>",
+    bottom3:"<div class='bigLabel'>não</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa02_tapeado,
+    topBtn3Action: etapa02_tipo,
     onTimeout: etapa02_tipo
   });
 }
@@ -653,8 +711,8 @@ function etapa02_pdf_prata(){
   renderScreen({
     type:"pdf",
     pdfName:"Prata",
-    text1:"<div class='bigLabel'>muito caro</div>",
-    text3:"<div class='bigLabel'>quero comprar</div>",
+    bottom1:"<div class='bigLabel'>muito caro</div>",
+    bottom3:"<div class='bigLabel'>quero comprar</div>",
     onBack: etapa02_tipo
   });
 }
@@ -662,8 +720,8 @@ function etapa02_pdf_ouro(){
   renderScreen({
     type:"pdf",
     pdfName:"Ouro",
-    text1:"<div class='bigLabel'>muito caro</div>",
-    text3:"<div class='bigLabel'>quero comprar</div>",
+    bottom1:"<div class='bigLabel'>muito caro</div>",
+    bottom3:"<div class='bigLabel'>quero comprar</div>",
     onBack: etapa02_tipo
   });
 }
@@ -674,13 +732,13 @@ function etapa02_tapeado(){
     img2:"0208",
     img1:"0205",
     img3:"0206",
-    text2:"<div class='centerText'>FUI TAPEADO</div>",
-    text1:"<div class='bigLabel'>Desistir</div>",
-    text3:"<div class='bigLabel'>voltar na loja barateza</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: inicio,
-    btn3Action: etapa02_aviso,
+    bottom2:"<div class='centerText'>FUI TAPEADO</div>",
+    bottom1:"<div class='bigLabel'>Desistir</div>",
+    bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: inicio,
+    topBtn3Action: etapa02_aviso,
     onTimeout: inicio
   });
 }
@@ -691,13 +749,13 @@ function etapa02_aviso(){
     img2:"0402",
     img1:"0206",
     img3:"0205",
-    text2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
-    text1:"<div class='bigLabel'>LUTAR</div>",
-    text3:"<div class='bigLabel'>Desistir</div>",
-    btn1Label:"continuar",
-    btn3Label:"continuar",
-    btn1Action: etapa02_luta1,
-    btn3Action: inicio,
+    bottom2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+    bottom1:"<div class='bigLabel'>LUTAR</div>",
+    bottom3:"<div class='bigLabel'>Desistir</div>",
+    topBtn1Label:"continuar",
+    topBtn3Label:"continuar",
+    topBtn1Action: etapa02_luta1,
+    topBtn3Action: inicio,
     onTimeout: inicio
   });
 }
@@ -708,8 +766,8 @@ function etapa02_luta1(){
     img2:"0403",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    btn2Label:"continuar",
-    btn2Action: etapa02_luta2,
+    topBtn2Label:"continuar",
+    topBtn2Action: etapa02_luta2,
     onTimeout: etapa02_luta2
   });
 }
@@ -720,8 +778,8 @@ function etapa02_luta2(){
     img2:"0207",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    btn2Label:"continuar",
-    btn2Action: inicio,
+    topBtn2Label:"continuar",
+    topBtn2Action: inicio,
     onTimeout: inicio
   });
 }
