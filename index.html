@@ -63,8 +63,6 @@ body{
 .hidden{display:none!important;}
 
 .mediaPanel{position:relative; min-height:220px;}
-
-/* ✅ FIX: imagem nunca estoura */
 .media{
   min-height:220px;
   display:flex;
@@ -111,9 +109,8 @@ body{
 
 .bigLabel{font-size:22px;font-weight:900}
 .centerText{text-align:center;font-size:20px;font-weight:900}
-.smallHint{opacity:.85;font-size:16px}
 
-/* ✅ botões de escolha embaixo (pra não sumir quando top1/top3 escondem) */
+/* botões de escolha embaixo */
 .bottomChoice{
   display:flex;
   align-items:center;
@@ -149,14 +146,23 @@ body{
   position:relative;
   overflow:hidden;
   min-height:70vh;
-  background:#000;
+  background:#0b0b0d;
 }
-.pdfFull iframe{
-  width:100%;
+
+/* ✅ container com scroll e canvas centralizado */
+#pdfPages{
   height:70vh;
-  border:0;
-  background:#000;
+  overflow:auto;
+  padding:16px 16px 26px 16px;
 }
+#pdfPages canvas{
+  display:block;
+  margin:0 auto 16px auto;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 14px 40px rgba(0,0,0,.55);
+}
+
 .pdfAction{
   position:absolute;
   top:14px;
@@ -191,8 +197,9 @@ body{
   .media img{max-height:52vh;}
   .caption{display:block;}
   .textPanel{padding:14px}
+
   .pdfFull{min-height:78vh;}
-  .pdfFull iframe{height:78vh;}
+  #pdfPages{height:78vh; padding:14px;}
   .pdfAction{padding:16px 16px;font-size:16px;border-radius:16px}
   .pdfAction.left{left:10px}
   .pdfAction.right{right:10px}
@@ -222,10 +229,11 @@ body{
       <div class="choiceBtn" id="top3btn"></div>
     </div>
 
+    <!-- PDF (render PDF.js) -->
     <div class="pdfFull hidden" id="pdfWrap">
       <div class="pdfAction left" id="pdfBack">voltar</div>
       <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
-      <iframe id="pdfFrame" title="PDF"></iframe>
+      <div id="pdfPages"></div>
     </div>
 
     <div class="panel textPanel" id="bot1"><div class="slot" id="bot1slot"></div></div>
@@ -235,24 +243,14 @@ body{
   </div>
 </div>
 
-<script>
-/* =========================
-   CONFIG
-========================= */
-const TIMER_MS = 60000; // 60s (exceto PDF)
+<!-- ✅ PDF.JS como módulo (usando seus arquivos locais) -->
+<script type="module">
+import * as pdfjsLib from "./pdf.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
+
+const TIMER_MS = 60000;
 const WHATS = "https://wa.me/5541998518452";
 
-let PDFJS_VIEWER = null;
-const PDFJS_VIEWER_CANDIDATES = [
-  "./viewer.html",
-  "./pdfjs/web/viewer.html",
-  "./web/viewer.html",
-  "./pdfjs/viewer.html"
-];
-
-/* =========================
-   DOM
-========================= */
 const grid = document.getElementById("grid");
 
 const top1 = document.getElementById("top1");
@@ -280,15 +278,15 @@ const bot2Panel = document.getElementById("bot2");
 const bot3Panel = document.getElementById("bot3");
 
 const pdfWrap = document.getElementById("pdfWrap");
-const pdfFrame = document.getElementById("pdfFrame");
+const pdfPages = document.getElementById("pdfPages");
 const pdfBack = document.getElementById("pdfBack");
 const pdfWhats = document.getElementById("pdfWhats");
 
 let timer = null;
+let currentPdfTask = null;
+let currentPdfName = null;
+let resizeTO = null;
 
-/* =========================
-   HELPERS
-========================= */
 function clearT(){ if(timer) clearTimeout(timer); timer=null; }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER_MS); }
 
@@ -304,7 +302,6 @@ function setGridMode(mode){
 function img(name){
   return (name==="03") ? "./03.jpeg" : "./"+name+".png";
 }
-
 function setImg(imgEl, src){
   imgEl.onerror = () => { imgEl.style.display="none"; };
   imgEl.style.display="block";
@@ -338,8 +335,11 @@ function setBottomButton(slotEl, label, fn){
 function resetAll(){
   clearT();
 
+  // fecha PDF
   hide(pdfWrap);
-  pdfFrame.removeAttribute("src");
+  pdfPages.innerHTML = "";
+  currentPdfName = null;
+  currentPdfTask = null;
 
   show(top1); show(top2); show(top3);
   show(bot1Panel); show(bot2Panel); show(bot3Panel);
@@ -355,46 +355,68 @@ function resetAll(){
 }
 
 /* =========================
-   PDF FIX
+   PDF.JS RENDER (sem iframe)
 ========================= */
-function siteBase(){
-  const u = new URL(window.location.href);
-  u.hash = ""; u.search = "";
-  const path = u.pathname.endsWith("/") ? u.pathname : u.pathname.replace(/\/[^\/]*$/, "/");
-  return u.origin + path;
-}
-function pdfAbs(name){ return siteBase() + name + ".pdf"; }
+async function renderPdfToPages(pdfName){
+  currentPdfName = pdfName;
+  pdfPages.innerHTML = "<div style='text-align:center;opacity:.85;padding:28px;font-weight:800'>carregando pdf…</div>";
 
-async function resolvePdfViewer(){
-  for(const p of PDFJS_VIEWER_CANDIDATES){
-    try{
-      const r = await fetch(p, { cache:"no-store" });
-      if(r.ok){ PDFJS_VIEWER = p; return; }
-    }catch(e){}
+  const url = "./" + pdfName + ".pdf";
+  const task = pdfjsLib.getDocument({ url, withCredentials:false });
+  currentPdfTask = task;
+
+  let pdf;
+  try{
+    pdf = await task.promise;
+  }catch(e){
+    pdfPages.innerHTML = "<div style='text-align:center;color:#ffb4b4;padding:28px;font-weight:900'>Não consegui abrir o PDF. Verifique se "+pdfName+".pdf está na mesma pasta do index.html.</div>";
+    return;
   }
-  PDFJS_VIEWER = null;
-}
-resolvePdfViewer();
 
-function pdfUrl(name){
-  const file = pdfAbs(name);
-  if(PDFJS_VIEWER){
-    return PDFJS_VIEWER + "?file=" + encodeURIComponent(file) + "#pagemode=none";
+  pdfPages.innerHTML = "";
+  const containerWidth = pdfPages.clientWidth - 24; // padding
+
+  for(let pageNum=1; pageNum<=pdf.numPages; pageNum++){
+    const page = await pdf.getPage(pageNum);
+    const viewport1 = page.getViewport({ scale: 1 });
+    const scale = Math.min(2.2, containerWidth / viewport1.width);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { alpha:false });
+
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+
+    pdfPages.appendChild(canvas);
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
   }
-  return file;
 }
 
-function showPdf(name, onBack){
-  clearT(); // sem timer em PDF
+function showPdf(pdfName, onBack){
+  clearT(); // ✅ sem timer no PDF
 
   hide(top1); hide(top2); hide(top3);
-  show(pdfWrap);
-
-  pdfFrame.src = pdfUrl(name);
+  show(wrapPDFOnly());
 
   pdfBack.onclick = () => { hide(pdfWrap); onBack(); };
   pdfWhats.onclick = () => window.location.href = WHATS;
+
+  renderPdfToPages(pdfName);
 }
+
+function wrapPDFOnly(){
+  show(pdfWrap);
+  return pdfWrap;
+}
+
+// re-render no resize (pra ficar bom no celular/PC)
+window.addEventListener("resize", () => {
+  if(!currentPdfName) return;
+  clearTimeout(resizeTO);
+  resizeTO = setTimeout(() => renderPdfToPages(currentPdfName), 250);
+});
 
 /* =========================
    RENDER ENGINE
@@ -404,7 +426,6 @@ function renderScreen(screen){
   setGridMode(screen.mode || "three");
 
   if(screen.type==="pdf"){
-    // textos embaixo
     if(screen.bottom1) setBottomHTML(bot1slot, screen.bottom1);
     if(screen.bottom2) setBottomHTML(bot2slot, screen.bottom2);
     if(screen.bottom3) setBottomHTML(bot3slot, screen.bottom3);
@@ -426,12 +447,10 @@ function renderScreen(screen){
   if(screen.img2) setImg(t2, img(screen.img2));
   if(screen.img3) setImg(t3, img(screen.img3));
 
-  // top buttons (continuar etc.)
   setTopBtn(b1, screen.topBtn1Label || "", screen.topBtn1Action || null);
   setTopBtn(b2, screen.topBtn2Label || "", screen.topBtn2Action || null);
   setTopBtn(b3, screen.topBtn3Label || "", screen.topBtn3Action || null);
 
-  // bottom slots
   setBottomHTML(bot1slot, screen.bottom1 || "");
   setBottomHTML(bot2slot, screen.bottom2 || "");
   setBottomHTML(bot3slot, screen.bottom3 || "");
@@ -440,12 +459,10 @@ function renderScreen(screen){
   if(typeof screen.bottomBtn2Action === "function") setBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
   if(typeof screen.bottomBtn3Action === "function") setBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
 
-  // captions mobile
   cap1.innerHTML = screen.cap1 || screen.bottom1 || "";
   cap2.innerHTML = screen.cap2 || screen.bottom2 || "";
   cap3.innerHTML = screen.cap3 || screen.bottom3 || "";
 
-  // timer
   if(screen.timer===false){
     clearT();
   }else if(typeof screen.onTimeout==="function"){
@@ -454,10 +471,8 @@ function renderScreen(screen){
 }
 
 /* =========================
-   FLOW (EXATAMENTE COMO VOCÊ DEFINIU)
+   FLOW (EXATO)
 ========================= */
-
-/* INICIO */
 function inicio(){
   renderScreen({
     mode:"two",
@@ -475,9 +490,8 @@ function inicio(){
   });
 }
 
-/* ===== ETAPA 01 ===== */
+/* ETAPA 01 */
 function etapa01_q1(){
-  // ✅ imagem só no centro em cima, opções embaixo esquerda/direita
   renderScreen({
     mode:"three",
     hideTop1:true, hideTop3:true,
@@ -630,7 +644,7 @@ function etapa01_luta2(){
   });
 }
 
-/* ===== ETAPA 02 ===== */
+/* ETAPA 02 */
 function etapa02_q1(){
   renderScreen({
     mode:"three",
