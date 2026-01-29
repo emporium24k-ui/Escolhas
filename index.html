@@ -105,6 +105,7 @@ body{
   object-fit:contain;
 }
 
+/* captions: aparecem no mobile, somem no PC */
 .caption{
   display:none;
   padding:14px 14px 18px 14px;
@@ -127,7 +128,7 @@ body{
   text-align:center;
   cursor:pointer;
   user-select:none;
-  z-index:5; /* ✅ garante que fica acima da imagem */
+  z-index:5; /* ✅ acima da imagem */
 }
 .choiceBtn:hover{filter:brightness(1.06)}
 .choiceBtn:active{transform:translateY(2px)}
@@ -217,7 +218,7 @@ body{
     object-fit:contain;
   }
 
-  .caption{display:block;}
+  .caption{display:block;} /* ✅ captions no mobile */
   .textPanel{padding:14px}
 
   .pdfFull{min-height:78vh;}
@@ -425,8 +426,7 @@ async function renderPdfToPages(pdfName){
 
 /* ✅ PDF SEM TIMER (sempre) */
 function showPdf(pdfName, onBack){
-  clearT(); /* garante que NENHUM timer anterior fique ativo */
-
+  clearT();
   hide(top1); hide(top2); hide(top3);
   hide(bot1Panel); hide(bot2Panel); hide(bot3Panel);
 
@@ -600,7 +600,32 @@ function etapa01_tipo(){
   });
 }
 
+/* ✅ MOBILE CLARO: textos no card (caption) + some textos de baixo */
 function etapa01_emporium_q(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"03",
+      img1:"0103",
+      img3:"0103",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+      cap1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+      cap3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa01_pdf_prata,
+      topBtn3Action: etapa01_pdf_ouro,
+
+      onTimeout: etapa01_tipo
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"03",
@@ -618,6 +643,30 @@ function etapa01_emporium_q(){
 }
 
 function etapa01_baratesa_q(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"04",
+      img1:"0103",
+      img3:"0103",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+      cap1:"<div class='bigLabel'>sim</div>",
+      cap3:"<div class='bigLabel'>não</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa01_tapeada,
+      topBtn3Action: etapa01_tipo,
+
+      onTimeout: etapa01_tipo
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"04",
@@ -634,7 +683,7 @@ function etapa01_baratesa_q(){
   });
 }
 
-/* ✅ PDFs sem timer */
+/* PDFs sem timer */
 function etapa01_pdf_prata(){ showPdf("Prata", etapa01_tipo); }
 function etapa01_pdf_ouro(){ showPdf("Ouro", etapa01_tipo); }
 
@@ -769,6 +818,30 @@ function etapa02_tipo(){
 }
 
 function etapa02_emporium_q(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"03",
+      img1:"0203",
+      img3:"0203",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+      cap1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+      cap3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa02_pdf_prata,
+      topBtn3Action: etapa02_pdf_ouro,
+
+      onTimeout: etapa02_tipo
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"03",
@@ -786,6 +859,30 @@ function etapa02_emporium_q(){
 }
 
 function etapa02_baratesa_q(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",
+      img2:"04",
+      img1:"0203",
+      img3:"0203",
+      hideBot1:true, hideBot2:true, hideBot3:true,
+
+      cap2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+      cap1:"<div class='bigLabel'>sim</div>",
+      cap3:"<div class='bigLabel'>não</div>",
+
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa02_tapeado,
+      topBtn3Action: etapa02_tipo,
+
+      onTimeout: etapa02_tipo
+    });
+    return;
+  }
+
   renderScreen({
     mode:"three",
     img2:"04",
@@ -802,7 +899,7 @@ function etapa02_baratesa_q(){
   });
 }
 
-/* ✅ PDFs sem timer */
+/* PDFs sem timer */
 function etapa02_pdf_prata(){ showPdf("Prata", etapa02_tipo); }
 function etapa02_pdf_ouro(){ showPdf("Ouro", etapa02_tipo); }
 
