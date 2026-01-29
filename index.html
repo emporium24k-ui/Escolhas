@@ -74,9 +74,29 @@ body{
 /* some de verdade quando não precisa */
 .hidden{ display:none !important; }
 
-.mediaPanel{position:relative}
-.media img{width:100%;display:block}
+.mediaPanel{position:relative; min-height: 140px;}
+.media{min-height: 140px;}
+.media img{
+  width:100%;
+  display:block;
+}
 
+/* card só de botão (sem imagem) */
+.btnOnly{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0;
+  min-height: 140px;
+}
+.btnOnly .media{display:none !important;}
+.btnOnly .choiceBtn{
+  position:static;
+  margin:12px;
+  width:calc(100% - 24px);
+}
+
+/* botão dourado */
 .choiceBtn{
   position:absolute;
   left:12px;right:12px;bottom:12px;
@@ -210,11 +230,9 @@ function img(name){ return name==="03" ? IMG+"03.jpeg" : IMG+name+".png"; }
 function clearT(){ if(timer) clearTimeout(timer); }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER); }
 
-/* controla visibilidade real */
 function showPanel(el){ el.classList.remove("hidden"); }
 function hidePanel(el){ el.classList.add("hidden"); }
 
-/* botão */
 function setBtn(btnEl, text, onClick){
   btnEl.textContent = text || "";
   btnEl.onclick = null;
@@ -223,47 +241,74 @@ function setBtn(btnEl, text, onClick){
   btnEl.onclick = onClick;
 }
 
-/* imagem */
 function setImg(imgEl, src){
-  imgEl.src = src;
-  imgEl.style.display = "block";
+  imgEl.style.display="block";
   imgEl.onerror = () => { imgEl.style.display="none"; };
+  imgEl.src = src;
 }
 
-/* modo 2 colunas no grid */
+/* Modo 2 colunas */
 function setTwoColsMode(on){
   if(on) grid.classList.add("twoCols");
   else grid.classList.remove("twoCols");
 }
 
-/* limpa tudo para montar etapa */
+/* Remove modo botão-only */
+function clearBtnOnly(){
+  top1.classList.remove("btnOnly");
+  top3.classList.remove("btnOnly");
+  top2.classList.remove("btnOnly");
+}
+
+/* Reset */
 function resetLayout(){
+  clearBtnOnly();
+
   hidePanel(pdfWrap);
   pdfFrame.removeAttribute("src");
 
-  // mostra os 3 por padrão (etapas vão esconder o que não usa)
   showPanel(top1); showPanel(top2); showPanel(top3);
   showPanel(bot1Panel); showPanel(bot2Panel); showPanel(bot3Panel);
 
-  // botões visíveis só se tiver texto
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
-  // textos
   bot1.innerHTML=""; bot2.innerHTML=""; bot3.innerHTML="";
 
-  // imagens
   t1.removeAttribute("src"); t2.removeAttribute("src"); t3.removeAttribute("src");
   t1.style.display="block"; t2.style.display="block"; t3.style.display="block";
 
-  // padrão 3 colunas
   setTwoColsMode(false);
 }
 
-/* PDF full */
+/* Etapa centro + escolhas laterais: laterais viram cards só de botão */
+function centerWithSideChoices(centerImgName, leftText, leftFn, rightText, rightFn, centerBottomHtml, timeoutFn){
+  clearT();
+  resetLayout();
+
+  // centro com imagem
+  setImg(t2, img(centerImgName));
+
+  // laterais como "btnOnly"
+  top1.classList.add("btnOnly");
+  top3.classList.add("btnOnly");
+  t1.style.display="none";
+  t3.style.display="none";
+
+  setBtn(b1, leftText, leftFn);
+  setBtn(b3, rightText, rightFn);
+
+  // textos embaixo: só meio
+  hidePanel(bot1Panel);
+  hidePanel(bot3Panel);
+  showPanel(bot2Panel);
+  bot2.innerHTML = centerBottomHtml || "";
+
+  startT(timeoutFn);
+}
+
+/* PDF */
 function showPdf(name, onBack, onTimeout){
-  // some com os cards de cima
   hidePanel(top1); hidePanel(top2); hidePanel(top3);
-  // mostra pdf ocupando 3
   showPanel(pdfWrap);
   pdfFrame.src = PDF + name + ".pdf";
 
@@ -274,30 +319,24 @@ function showPdf(name, onBack, onTimeout){
 }
 
 /* =========================
-   INICIO (2 colunas, sem meio)
+   INICIO
 ========================= */
 function inicio(){
   clearT();
   resetLayout();
 
-  // some os slots do meio (top2 e bot2)
   hidePanel(top2);
   hidePanel(bot2Panel);
-
-  // ativa modo 2 colunas
   setTwoColsMode(true);
 
-  // imagens só esquerda e direita
   setImg(t1, img("01"));
   setImg(t3, img("02"));
 
-  // botões só esquerda e direita
   setBtn(b1, "continuar", () => etapa01_q1());
   setBtn(b3, "continuar", () => etapa02_q1());
 
-  // textos só esquerda e direita
-  bot1.innerHTML = "<div class='bigLabel'>mulher</div>";
-  bot3.innerHTML = "<div class='bigLabel'>homem</div>";
+  bot1.innerHTML="<div class='bigLabel'>mulher</div>";
+  bot3.innerHTML="<div class='bigLabel'>homem</div>";
 
   startT(() => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
 }
@@ -306,29 +345,13 @@ function inicio(){
    ETAPA 01
 ====================== */
 function etapa01_q1(){
-  clearT();
-  resetLayout();
-
-  // só o centro
-  hidePanel(top1); hidePanel(top3);
-  hidePanel(bot1Panel); hidePanel(bot3Panel);
-
-  setImg(t2, img("0102"));
-
-  // botões sim/não nos lados (top1/top3 estão hidden, então usamos top2 como centro e
-  // colocamos os botões no top1btn/top3btn? melhor manter botões nos lados VISÍVEIS:
-  // Vamos mostrar top1 e top3 apenas para botões (sem imagem)
-  showPanel(top1); showPanel(top3);
-  t1.style.display="none";
-  t3.style.display="none";
-
-  setBtn(b1, "sim", () => etapa01_tipo());
-  setBtn(b3, "não", () => etapa01_fimNao());
-
-  bot2Panel.classList.remove("hidden");
-  bot2.innerHTML = "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
-
-  startT(() => etapa01_fimNao());
+  centerWithSideChoices(
+    "0102",
+    "sim", () => etapa01_tipo(),
+    "não", () => etapa01_fimNao(),
+    "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    () => etapa01_fimNao()
+  );
 }
 
 function etapa01_fimNao(){
@@ -339,10 +362,10 @@ function etapa01_fimNao(){
   hidePanel(bot1Panel); hidePanel(bot3Panel);
 
   setImg(t2, img("0105"));
+
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
   bot2.innerHTML = "ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
-
   startT(() => inicio());
 }
 
@@ -368,10 +391,7 @@ function etapa01_emporium(){
   clearT();
   resetLayout();
 
-  // centro 03.jpeg, laterais opções
   setImg(t2, img("03"));
-
-  // laterais com imagem 0103
   setImg(t1, img("0103"));
   setImg(t3, img("0103"));
 
@@ -389,15 +409,12 @@ function etapa01_pdf_prata(){
   clearT();
   resetLayout();
 
-  // textos abaixo como você pediu
-  bot1Panel.classList.remove("hidden");
-  bot3Panel.classList.remove("hidden");
-  bot2Panel.classList.add("hidden");
+  hidePanel(bot2Panel);
+  showPanel(bot1Panel); showPanel(bot3Panel);
 
   bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
   bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
 
-  // PDF full
   showPdf("Prata", () => etapa01_tipo(), () => etapa01_emporium());
 }
 
@@ -405,9 +422,8 @@ function etapa01_pdf_ouro(){
   clearT();
   resetLayout();
 
-  bot1Panel.classList.remove("hidden");
-  bot3Panel.classList.remove("hidden");
-  bot2Panel.classList.add("hidden");
+  hidePanel(bot2Panel);
+  showPanel(bot1Panel); showPanel(bot3Panel);
 
   bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
   bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
@@ -473,7 +489,6 @@ function etapa01_lutar(){
   clearT();
   resetLayout();
 
-  // só centro + botão direito
   hidePanel(top1); hidePanel(bot1Panel);
   hidePanel(top3); hidePanel(bot3Panel);
   showPanel(top2); showPanel(bot2Panel);
@@ -501,28 +516,16 @@ function etapa01_final(){
 }
 
 /* ======================
-   ETAPA 02 (ATUALIZADA)
+   ETAPA 02
 ====================== */
 function etapa02_q1(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(top3);
-  hidePanel(bot1Panel); hidePanel(bot3Panel);
-
-  setImg(t2, img("0202"));
-
-  showPanel(top1); showPanel(top3);
-  t1.style.display="none";
-  t3.style.display="none";
-
-  setBtn(b1, "sim", () => etapa02_tipo());
-  setBtn(b3, "não", () => etapa02_fimNao());
-
-  bot2Panel.classList.remove("hidden");
-  bot2.innerHTML="<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
-
-  startT(() => etapa02_fimNao());
+  centerWithSideChoices(
+    "0202",
+    "sim", () => etapa02_tipo(),
+    "não", () => etapa02_fimNao(),
+    "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    () => etapa02_fimNao()
+  );
 }
 
 function etapa02_fimNao(){
@@ -536,7 +539,6 @@ function etapa02_fimNao(){
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
   bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
-
   startT(() => inicio());
 }
 
@@ -580,9 +582,8 @@ function etapa02_pdf_prata(){
   clearT();
   resetLayout();
 
-  bot1Panel.classList.remove("hidden");
-  bot3Panel.classList.remove("hidden");
-  bot2Panel.classList.add("hidden");
+  hidePanel(bot2Panel);
+  showPanel(bot1Panel); showPanel(bot3Panel);
 
   bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
   bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
@@ -594,9 +595,8 @@ function etapa02_pdf_ouro(){
   clearT();
   resetLayout();
 
-  bot1Panel.classList.remove("hidden");
-  bot3Panel.classList.remove("hidden");
-  bot2Panel.classList.add("hidden");
+  hidePanel(bot2Panel);
+  showPanel(bot1Panel); showPanel(bot3Panel);
 
   bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
   bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
