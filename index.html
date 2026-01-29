@@ -53,6 +53,30 @@ body{
     "bot2";
 }
 
+/* ✅ MOBILE (padrão) */
+@media (max-width:900px){
+  body{padding:10px}
+
+  .grid, .grid.twoCols, .grid.centerOnly{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "top1"
+      "top2"
+      "top3"
+      "bot1"
+      "bot2"
+      "bot3";
+  }
+
+  /* ✅ MOBILE ESPECIAL: pergunta em cima, depois 2 opções */
+  .grid.mobileTwoChoices{
+    grid-template-areas:
+      "bot2"
+      "top1"
+      "top3";
+  }
+}
+
 .panel{
   border:1px solid var(--border);
   border-radius:var(--radius);
@@ -65,8 +89,8 @@ body{
 
 /* ✅ PC: imagens maiores */
 .media{
-  height:72vh;          /* antes 66vh */
-  min-height:440px;     /* antes 380px */
+  height:72vh;
+  min-height:440px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -178,19 +202,6 @@ body{
 
 /* MOBILE */
 @media (max-width:900px){
-  body{padding:10px}
-
-  .grid, .grid.twoCols, .grid.centerOnly{
-    grid-template-columns:1fr;
-    grid-template-areas:
-      "top1"
-      "top2"
-      "top3"
-      "bot1"
-      "bot2"
-      "bot3";
-  }
-
   .media{
     height:auto;
     min-height:320px;
@@ -301,42 +312,30 @@ function show(el){ el.classList.remove("hidden"); }
 function hide(el){ el.classList.add("hidden"); }
 
 function setGridMode(mode){
-  grid.classList.remove("twoCols","centerOnly");
+  grid.classList.remove("twoCols","centerOnly","mobileTwoChoices");
   if(mode==="two") grid.classList.add("twoCols");
   if(mode==="center") grid.classList.add("centerOnly");
 }
+function setMobileTwoChoices(enabled){
+  grid.classList.toggle("mobileTwoChoices", !!enabled);
+}
 
 function fileNameFor(assetName){
-  // ✅ só o "03" é jpeg, o resto é png
   if(assetName==="03") return "03.jpeg";
   return assetName + ".png";
 }
-
-// ✅ robustece caminho: tenta raiz e algumas pastas comuns
 function candidatePaths(assetName){
   const f = fileNameFor(assetName);
-  return [
-    "./" + f,
-    "./images/" + f,
-    "./img/" + f,
-    "./assets/" + f,
-    "./static/" + f
-  ];
+  return ["./"+f,"./images/"+f,"./img/"+f,"./assets/"+f,"./static/"+f];
 }
-
 function setImg(imgEl, assetName){
   const paths = candidatePaths(assetName);
   let idx = 0;
-
   imgEl.onerror = () => {
     idx++;
-    if(idx < paths.length){
-      imgEl.src = paths[idx];
-    }else{
-      imgEl.style.display = "none";
-    }
+    if(idx < paths.length) imgEl.src = paths[idx];
+    else imgEl.style.display = "none";
   };
-
   imgEl.style.display = "block";
   imgEl.src = paths[0];
 }
@@ -354,7 +353,6 @@ function setTopBtn(btnEl, label, fn){
 }
 
 function setBottomHTML(slotEl, html){ slotEl.innerHTML = html || ""; }
-
 function setBottomButton(slotEl, label, fn){
   slotEl.innerHTML = "";
   const div = document.createElement("div");
@@ -366,6 +364,7 @@ function setBottomButton(slotEl, label, fn){
 
 function resetAll(){
   clearT();
+  setMobileTwoChoices(false);
 
   hide(pdfWrap);
   pdfPages.innerHTML = "";
@@ -445,7 +444,7 @@ window.addEventListener("resize", () => {
 function renderScreen(screen){
   resetAll();
 
-  const mobile = isMobile();
+  if(screen.mobileTwoChoices) setMobileTwoChoices(true);
 
   setGridMode(screen.mode || "three");
 
@@ -478,16 +477,9 @@ function renderScreen(screen){
   if(typeof screen.bottomBtn2Action === "function") setBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
   if(typeof screen.bottomBtn3Action === "function") setBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
 
-  cap1.innerHTML = screen.cap1 || screen.bottom1 || "";
-  cap2.innerHTML = screen.cap2 || screen.bottom2 || "";
-  cap3.innerHTML = screen.cap3 || screen.bottom3 || "";
-
-  // ✅ MOBILE: esconde painéis vazios automaticamente (não some com botões, porque botões preenchem slot)
-  if(mobile){
-    if(!bot1slot.innerHTML.trim()) hide(bot1Panel);
-    if(!bot2slot.innerHTML.trim()) hide(bot2Panel);
-    if(!bot3slot.innerHTML.trim()) hide(bot3Panel);
-  }
+  cap1.innerHTML = screen.cap1 || "";
+  cap2.innerHTML = screen.cap2 || "";
+  cap3.innerHTML = screen.cap3 || "";
 
   if(screen.timer===false){
     clearT();
@@ -540,14 +532,12 @@ function etapa01_q1(){
     mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0102",
+    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-
     bottomBtn1Label:"sim",
     bottomBtn1Action: etapa01_tipo,
-
     bottomBtn3Label:"não",
     bottomBtn3Action: etapa01_nao_end,
-
     onTimeout: etapa01_nao_end
   });
 }
@@ -566,26 +556,36 @@ function etapa01_nao_end(){
 function etapa01_tipo(){
   const mobile = isMobile();
 
-  // ✅ MOBILE: tira o card do meio (0103) pra não ficar confuso
   if(mobile){
+    /* ✅ MOBILE: pergunta em cima + 2 cards claros (sem textos soltos) */
     renderScreen({
+      mobileTwoChoices:true,
       mode:"three",
       hideTop2:true,
-      img1:"0401",
-      img3:"0301",
+      hideBot1:true,
+      hideBot3:true,
+
+      /* pergunta no topo */
       bottom2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
-      bottom1:"<div class='bigLabel'>Loja Baratesa</div>",
-      bottom3:"<div class='bigLabel'>Emporium24k</div>",
+
+      /* card 1 */
+      img1:"0401",
+      cap1:"<div class='bigLabel'>Loja Baratesa</div>",
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa01_baratesa_q,
+
+      /* card 2 */
+      img3:"0301",
+      cap3:"<div class='bigLabel'>Emporium24k</div>",
+      topBtn3Label:"continuar",
       topBtn3Action: etapa01_emporium_q,
+
       onTimeout: inicio
     });
     return;
   }
 
-  // ✅ DESKTOP: mantém o centro com 0103
+  /* DESKTOP */
   renderScreen({
     mode:"three",
     img1:"0401",
@@ -703,14 +703,12 @@ function etapa02_q1(){
     mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0202",
+    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-
     bottomBtn1Label:"sim",
     bottomBtn1Action: etapa02_tipo,
-
     bottomBtn3Label:"não",
     bottomBtn3Action: etapa02_nao_end,
-
     onTimeout: etapa02_nao_end
   });
 }
@@ -729,26 +727,31 @@ function etapa02_nao_end(){
 function etapa02_tipo(){
   const mobile = isMobile();
 
-  // ✅ MOBILE: tira o card do meio (0203) pra não ficar confuso
   if(mobile){
     renderScreen({
+      mobileTwoChoices:true,
       mode:"three",
       hideTop2:true,
-      img1:"0401",
-      img3:"0301",
+      hideBot1:true,
+      hideBot3:true,
+
       bottom2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
-      bottom1:"<div class='bigLabel'>Loja Baratesa</div>",
-      bottom3:"<div class='bigLabel'>Emporium24k</div>",
+
+      img1:"0401",
+      cap1:"<div class='bigLabel'>Loja Baratesa</div>",
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa02_baratesa_q,
+
+      img3:"0301",
+      cap3:"<div class='bigLabel'>Emporium24k</div>",
+      topBtn3Label:"continuar",
       topBtn3Action: etapa02_emporium_q,
+
       onTimeout: inicio
     });
     return;
   }
 
-  // ✅ DESKTOP: mantém o centro com 0203
   renderScreen({
     mode:"three",
     img1:"0401",
