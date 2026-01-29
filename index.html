@@ -63,8 +63,23 @@ body{
 .hidden{display:none!important;}
 
 .mediaPanel{position:relative; min-height:220px;}
-.media{min-height:220px;}
-.media img{width:100%;height:auto;display:block}
+
+/* ✅ FIX DO BUG: imagem nunca estoura a tela */
+.media{
+  min-height:220px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px;
+}
+.media img{
+  display:block;
+  max-width:100%;
+  max-height:58vh;   /* <-- aqui resolve a imagem gigante */
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
 
 .caption{
   display:none; /* desktop: texto embaixo */
@@ -151,11 +166,15 @@ body{
       "bot2"
       "bot3";
   }
+
   .mediaPanel{min-height:260px;}
   .media{min-height:260px;}
+  .media img{max-height:52vh;} /* mobile um pouco menor */
+
   .textPanel{display:none;}
   .caption{display:block;}
   .choiceBtn{padding:18px;font-size:18px;border-radius:16px}
+
   .pdfFull{min-height:78vh;}
   .pdfFull iframe{height:78vh;}
   .pdfAction{padding:16px 16px;font-size:16px;border-radius:16px}
@@ -201,13 +220,9 @@ body{
 </div>
 
 <script>
-/* =========================
-   CONFIG
-========================= */
 const TIMER_MS = 60000; // 60s (exceto PDF)
 const WHATS = "https://wa.me/5541998518452";
 
-/* viewer candidatos (porque você subiu “tudão” e pode estar em lugares diferentes) */
 let PDFJS_VIEWER = null;
 const PDFJS_VIEWER_CANDIDATES = [
   "./viewer.html",
@@ -216,9 +231,6 @@ const PDFJS_VIEWER_CANDIDATES = [
   "./pdfjs/viewer.html"
 ];
 
-/* =========================
-   DOM
-========================= */
 const grid = document.getElementById("grid");
 
 const top1 = document.getElementById("top1");
@@ -252,9 +264,6 @@ const pdfWhats = document.getElementById("pdfWhats");
 
 let timer = null;
 
-/* =========================
-   HELPERS
-========================= */
 function clearT(){ if(timer) clearTimeout(timer); timer=null; }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER_MS); }
 
@@ -268,13 +277,12 @@ function setGridMode(mode){
 }
 
 function img(name){
-  // só 03 é jpeg
   return (name==="03") ? "./03.jpeg" : "./"+name+".png";
 }
 
 function setImg(imgEl, src){
-  imgEl.style.display="block";
   imgEl.onerror = () => { imgEl.style.display="none"; };
+  imgEl.style.display="block";
   imgEl.src = src || "";
 }
 
@@ -299,7 +307,6 @@ function setText(slot, html){
 
 function resetAll(){
   clearT();
-
   hide(pdfWrap);
   pdfFrame.removeAttribute("src");
 
@@ -309,25 +316,17 @@ function resetAll(){
   setGridMode("three");
 
   setBtn(b1,"",null); setBtn(b2,"",null); setBtn(b3,"",null);
-
   setText(1,""); setText(2,""); setText(3,"");
-
   setImg(t1,""); setImg(t2,""); setImg(t3,"");
 }
 
-/* =========================
-   PDF FIX (URL absoluta + acha viewer)
-========================= */
 function siteBase(){
   const u = new URL(window.location.href);
-  u.hash = "";
-  u.search = "";
+  u.hash = ""; u.search = "";
   const path = u.pathname.endsWith("/") ? u.pathname : u.pathname.replace(/\/[^\/]*$/, "/");
   return u.origin + path;
 }
-function pdfAbs(name){
-  return siteBase() + name + ".pdf";
-}
+function pdfAbs(name){ return siteBase() + name + ".pdf"; }
 
 async function resolvePdfViewer(){
   for(const p of PDFJS_VIEWER_CANDIDATES){
@@ -336,7 +335,7 @@ async function resolvePdfViewer(){
       if(r.ok){ PDFJS_VIEWER = p; return; }
     }catch(e){}
   }
-  PDFJS_VIEWER = null; // fallback: abrir direto (com UI do navegador)
+  PDFJS_VIEWER = null;
 }
 resolvePdfViewer();
 
@@ -348,84 +347,58 @@ function pdfUrl(name){
   return file;
 }
 
-/* PDF: SEM TIMER */
 function showPdf(name, onBack){
-  clearT(); // remove timer nas telas de PDF
-
+  clearT(); // sem timer em PDF
   hide(top1); hide(top2); hide(top3);
   show(pdfWrap);
 
-  // tira texts do meio se quiser (mas você usava "muito caro / quero comprar" embaixo)
   pdfFrame.src = pdfUrl(name);
 
   pdfBack.onclick = () => { hide(pdfWrap); onBack(); };
   pdfWhats.onclick = () => window.location.href = WHATS;
 }
 
-/* =========================
-   RENDER ENGINE (telas)
-========================= */
 function renderScreen(screen){
   resetAll();
-
-  // screen.mode: "two" | "three" | "center"
   setGridMode(screen.mode || "three");
 
-  // pdf?
   if(screen.type==="pdf"){
-    // mantém textos embaixo se vierem
     if(screen.text1) setText(1, screen.text1);
     if(screen.text2) setText(2, screen.text2);
     if(screen.text3) setText(3, screen.text3);
-
-    // ocultar painel bot2 se vazio (normalmente é)
     if(!screen.text2) hide(bot2Panel);
-
-    // abrir pdf (topo ocupa tudo)
     showPdf(screen.pdfName, screen.onBack);
     return;
   }
 
-  // Top panels visibility
   if(screen.hideTop1) hide(top1);
   if(screen.hideTop2) hide(top2);
   if(screen.hideTop3) hide(top3);
 
-  // Bottom panels visibility
   if(screen.hideBot1) hide(bot1Panel);
   if(screen.hideBot2) hide(bot2Panel);
   if(screen.hideBot3) hide(bot3Panel);
 
-  // Images
-  if(screen.img1) setImg(t1, img(screen.img1)); else setImg(t1,"");
-  if(screen.img2) setImg(t2, img(screen.img2)); else setImg(t2,"");
-  if(screen.img3) setImg(t3, img(screen.img3)); else setImg(t3,"");
+  if(screen.img1) setImg(t1, img(screen.img1));
+  if(screen.img2) setImg(t2, img(screen.img2));
+  if(screen.img3) setImg(t3, img(screen.img3));
 
-  // Texts
   setText(1, screen.text1 || "");
   setText(2, screen.text2 || "");
   setText(3, screen.text3 || "");
 
-  // Buttons
   setBtn(b1, screen.btn1Label || "", screen.btn1Action || null);
   setBtn(b2, screen.btn2Label || "", screen.btn2Action || null);
   setBtn(b3, screen.btn3Label || "", screen.btn3Action || null);
 
-  // Timer behavior
   if(screen.timer===false){
     clearT();
-  }else{
-    if(typeof screen.onTimeout === "function"){
-      startT(screen.onTimeout);
-    }
+  }else if(typeof screen.onTimeout==="function"){
+    startT(screen.onTimeout);
   }
 }
 
-/* =========================
-   FLOW (todas as etapas)
-========================= */
-
-/* INICIO */
+/* ===== FLUXO COMPLETO ===== */
 function inicio(){
   renderScreen({
     mode:"two",
@@ -443,7 +416,7 @@ function inicio(){
   });
 }
 
-/* ===== ETAPA 01 ===== */
+/* ETAPA 01 */
 function etapa01_q1(){
   renderScreen({
     mode:"center",
@@ -463,10 +436,9 @@ function etapa01_nao_end(){
   renderScreen({
     mode:"center",
     img2:"0105",
-    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div><div class='smallHint' style='text-align:center;margin-top:6px'>sem mais escolhas — volta ao início ao fim do tempo</div>",
+    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    btn2Label:"",
     onTimeout: inicio
   });
 }
@@ -488,7 +460,6 @@ function etapa01_tipo(){
   });
 }
 
-/* Emporium24k - pergunta namoro/casamento */
 function etapa01_emporium_q(){
   renderScreen({
     mode:"three",
@@ -506,7 +477,6 @@ function etapa01_emporium_q(){
   });
 }
 
-/* Loja Baratesa - sim/não */
 function etapa01_baratesa_q(){
   renderScreen({
     mode:"three",
@@ -524,20 +494,15 @@ function etapa01_baratesa_q(){
   });
 }
 
-/* PDF prata */
 function etapa01_pdf_prata(){
   renderScreen({
     type:"pdf",
     pdfName:"Prata",
     text1:"<div class='bigLabel'>muito caro</div>",
     text3:"<div class='bigLabel'>quero comprar</div>",
-    // botão voltar do PDF volta para etapa01 parte 2 sim (etapa01_tipo)
     onBack: etapa01_tipo
-    // timer não existe em pdf
   });
 }
-
-/* PDF ouro */
 function etapa01_pdf_ouro(){
   renderScreen({
     type:"pdf",
@@ -548,7 +513,6 @@ function etapa01_pdf_ouro(){
   });
 }
 
-/* Tapeada */
 function etapa01_tapeada(){
   renderScreen({
     mode:"three",
@@ -562,11 +526,10 @@ function etapa01_tapeada(){
     btn3Label:"continuar",
     btn1Action: inicio,
     btn3Action: etapa01_aviso,
-    onTimeout: inicio // se não escolher, desistir
+    onTimeout: inicio
   });
 }
 
-/* Aviso qualidade */
 function etapa01_aviso(){
   renderScreen({
     mode:"three",
@@ -580,7 +543,7 @@ function etapa01_aviso(){
     btn3Label:"continuar",
     btn1Action: etapa01_luta1,
     btn3Action: inicio,
-    onTimeout: inicio // desistir
+    onTimeout: inicio
   });
 }
 
@@ -590,7 +553,6 @@ function etapa01_luta1(){
     img2:"0403",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    text2:"",
     btn2Label:"continuar",
     btn2Action: etapa01_luta2,
     onTimeout: etapa01_luta2
@@ -603,14 +565,13 @@ function etapa01_luta2(){
     img2:"0107",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    text2:"",
     btn2Label:"continuar",
     btn2Action: inicio,
     onTimeout: inicio
   });
 }
 
-/* ===== ETAPA 02 ===== */
+/* ETAPA 02 */
 function etapa02_q1(){
   renderScreen({
     mode:"center",
@@ -630,7 +591,7 @@ function etapa02_nao_end(){
   renderScreen({
     mode:"center",
     img2:"0205",
-    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div><div class='smallHint' style='text-align:center;margin-top:6px'>sem mais escolhas — volta ao início ao fim do tempo</div>",
+    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div>",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
     onTimeout: inicio
@@ -697,7 +658,6 @@ function etapa02_pdf_prata(){
     onBack: etapa02_tipo
   });
 }
-
 function etapa02_pdf_ouro(){
   renderScreen({
     type:"pdf",
@@ -748,7 +708,6 @@ function etapa02_luta1(){
     img2:"0403",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    text2:"",
     btn2Label:"continuar",
     btn2Action: etapa02_luta2,
     onTimeout: etapa02_luta2
@@ -761,7 +720,6 @@ function etapa02_luta2(){
     img2:"0207",
     hideTop1:true, hideTop3:true,
     hideBot1:true, hideBot3:true,
-    text2:"",
     btn2Label:"continuar",
     btn2Action: inicio,
     onTimeout: inicio
