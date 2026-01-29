@@ -112,6 +112,7 @@ body{
   font-size:18px; line-height:1.35;
 }
 
+/* ✅ TOP BUTTON */
 .choiceBtn{
   position:absolute;
   left:12px; right:12px; bottom:12px;
@@ -126,6 +127,7 @@ body{
   text-align:center;
   cursor:pointer;
   user-select:none;
+  z-index:5; /* ✅ garante que fica acima da imagem */
 }
 .choiceBtn:hover{filter:brightness(1.06)}
 .choiceBtn:active{transform:translateY(2px)}
@@ -151,6 +153,7 @@ body{
   text-transform:uppercase;
   cursor:pointer;
   user-select:none;
+  margin-top:12px;
 }
 .bottomChoice:hover{filter:brightness(1.06)}
 .bottomChoice:active{transform:translateY(2px)}
@@ -353,8 +356,7 @@ function setTopBtn(btnEl, label, fn){
 }
 
 function setBottomHTML(slotEl, html){ slotEl.innerHTML = html || ""; }
-function setBottomButton(slotEl, label, fn){
-  slotEl.innerHTML = "";
+function appendBottomButton(slotEl, label, fn){
   const div = document.createElement("div");
   div.className = "bottomChoice";
   div.textContent = (label||"").toUpperCase();
@@ -421,8 +423,9 @@ async function renderPdfToPages(pdfName){
   }
 }
 
+/* ✅ PDF SEM TIMER (sempre) */
 function showPdf(pdfName, onBack){
-  clearT();
+  clearT(); /* garante que NENHUM timer anterior fique ativo */
 
   hide(top1); hide(top2); hide(top3);
   hide(bot1Panel); hide(bot2Panel); hide(bot3Panel);
@@ -445,7 +448,6 @@ function renderScreen(screen){
   resetAll();
 
   if(screen.mobileTwoChoices) setMobileTwoChoices(true);
-
   setGridMode(screen.mode || "three");
 
   if(screen.type==="pdf"){
@@ -473,9 +475,9 @@ function renderScreen(screen){
   if(screen.bottom2) setBottomHTML(bot2slot, screen.bottom2);
   if(screen.bottom3) setBottomHTML(bot3slot, screen.bottom3);
 
-  if(typeof screen.bottomBtn1Action === "function") setBottomButton(bot1slot, screen.bottomBtn1Label, screen.bottomBtn1Action);
-  if(typeof screen.bottomBtn2Action === "function") setBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
-  if(typeof screen.bottomBtn3Action === "function") setBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
+  if(typeof screen.bottomBtn1Action === "function") appendBottomButton(bot1slot, screen.bottomBtn1Label, screen.bottomBtn1Action);
+  if(typeof screen.bottomBtn2Action === "function") appendBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
+  if(typeof screen.bottomBtn3Action === "function") appendBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
 
   cap1.innerHTML = screen.cap1 || "";
   cap2.innerHTML = screen.cap2 || "";
@@ -532,11 +534,12 @@ function etapa01_q1(){
     mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0102",
-    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    bottomBtn1Label:"sim",
+    bottom1:"<div class='bigLabel'>sim</div>",
+    bottom3:"<div class='bigLabel'>não</div>",
+    bottomBtn1Label:"continuar",
     bottomBtn1Action: etapa01_tipo,
-    bottomBtn3Label:"não",
+    bottomBtn3Label:"continuar",
     bottomBtn3Action: etapa01_nao_end,
     onTimeout: etapa01_nao_end
   });
@@ -557,7 +560,6 @@ function etapa01_tipo(){
   const mobile = isMobile();
 
   if(mobile){
-    /* ✅ MOBILE: pergunta em cima + 2 cards claros (sem textos soltos) */
     renderScreen({
       mobileTwoChoices:true,
       mode:"three",
@@ -565,16 +567,13 @@ function etapa01_tipo(){
       hideBot1:true,
       hideBot3:true,
 
-      /* pergunta no topo */
       bottom2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
 
-      /* card 1 */
       img1:"0401",
       cap1:"<div class='bigLabel'>Loja Baratesa</div>",
       topBtn1Label:"continuar",
       topBtn1Action: etapa01_baratesa_q,
 
-      /* card 2 */
       img3:"0301",
       cap3:"<div class='bigLabel'>Emporium24k</div>",
       topBtn3Label:"continuar",
@@ -585,7 +584,6 @@ function etapa01_tipo(){
     return;
   }
 
-  /* DESKTOP */
   renderScreen({
     mode:"three",
     img1:"0401",
@@ -636,6 +634,7 @@ function etapa01_baratesa_q(){
   });
 }
 
+/* ✅ PDFs sem timer */
 function etapa01_pdf_prata(){ showPdf("Prata", etapa01_tipo); }
 function etapa01_pdf_ouro(){ showPdf("Ouro", etapa01_tipo); }
 
@@ -703,11 +702,12 @@ function etapa02_q1(){
     mode:"three",
     hideTop1:true, hideTop3:true,
     img2:"0202",
-    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    bottomBtn1Label:"sim",
+    bottom1:"<div class='bigLabel'>sim</div>",
+    bottom3:"<div class='bigLabel'>não</div>",
+    bottomBtn1Label:"continuar",
     bottomBtn1Action: etapa02_tipo,
-    bottomBtn3Label:"não",
+    bottomBtn3Label:"continuar",
     bottomBtn3Action: etapa02_nao_end,
     onTimeout: etapa02_nao_end
   });
@@ -802,6 +802,7 @@ function etapa02_baratesa_q(){
   });
 }
 
+/* ✅ PDFs sem timer */
 function etapa02_pdf_prata(){ showPdf("Prata", etapa02_tipo); }
 function etapa02_pdf_ouro(){ showPdf("Ouro", etapa02_tipo); }
 
