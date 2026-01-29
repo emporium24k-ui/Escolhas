@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Landing Interativa</title>
+<title>Escolhas — Emporium24k</title>
 
 <style>
 :root{
@@ -13,7 +13,7 @@
   --radius:18px;
   --gap:12px;
 
-  /* DOURADO ESCURO */
+  /* DOURADO ESCURO (chamativo) */
   --gold:#b88a1b;
   --gold2:#e2b84a;
   --goldBorder:#f2d37a;
@@ -31,7 +31,6 @@ body{
 }
 .wrap{max-width:1100px;margin:auto}
 
-/* GRID base (3 colunas) */
 .grid6{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -42,7 +41,7 @@ body{
   align-items:start;
 }
 
-/* MODO 2 COLUNAS (sem o meio) */
+/* modo 2 colunas (sem meio) */
 .grid6.twoCols{
   grid-template-columns:repeat(2,1fr);
   grid-template-areas:
@@ -57,18 +56,12 @@ body{
   overflow:hidden;
 }
 
-/* some de verdade quando não precisa */
-.hidden{ display:none !important; }
+.hidden{display:none !important;}
 
-.mediaPanel{position:relative; min-height: 140px;}
-.media{min-height: 140px;}
-.media img{
-  width:100%;
-  display:block;
-  height:auto;
-}
+.mediaPanel{position:relative; min-height:140px;}
+.media{min-height:140px;}
+.media img{width:100%;height:auto;display:block;}
 
-/* ✅ legenda/caption dentro do card (usado no mobile) */
 .caption{
   display:none; /* desktop não usa */
   padding:14px 14px 70px 14px; /* espaço pro botão */
@@ -77,13 +70,13 @@ body{
   line-height:1.35;
 }
 
-/* card só de botão (sem imagem) */
+/* card sem imagem, só botão */
 .btnOnly{
   display:flex;
   align-items:flex-end;
   justify-content:center;
   padding:0;
-  min-height: 140px;
+  min-height:140px;
 }
 .btnOnly .media{display:none !important;}
 .btnOnly .caption{display:none !important;}
@@ -93,7 +86,6 @@ body{
   width:calc(100% - 24px);
 }
 
-/* botão dourado */
 .choiceBtn{
   position:absolute;
   left:12px;right:12px;bottom:12px;
@@ -127,7 +119,7 @@ body{
 #bot2{grid-area:bot2}
 #bot3{grid-area:bot3}
 
-/* PDF FULL */
+/* PDF ocupa os 3 espaços de cima */
 .pdfFull{
   grid-area:top1 / top1 / top3 / top3;
   border:1px solid var(--border);
@@ -154,20 +146,20 @@ body{
   font-weight:950;
   cursor:pointer;
   user-select:none;
-  z-index: 10;
+  z-index:10;
 }
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 
-/* =========================================================
-   ✅ MOBILE: deixa tudo claro (texto dentro do card)
+/* =========================
+   MOBILE: fica claro
    - 1 coluna
-   - some com os 3 textos de baixo
-   - mostra caption dentro do card
-========================================================= */
+   - some os textos de baixo
+   - mostra texto dentro do card
+========================= */
 @media (max-width:900px){
-  body{ padding:10px; }
-  .wrap{ max-width: 100%; }
+  body{padding:10px;}
+  .wrap{max-width:100%;}
 
   .grid6,
   .grid6.twoCols{
@@ -181,9 +173,9 @@ body{
       "bot3";
   }
 
-  .panel{ border-radius:16px; }
-  .mediaPanel{ min-height: 240px; }
-  .media{ min-height: 240px; }
+  .panel{border-radius:16px;}
+  .mediaPanel{min-height:240px;}
+  .media{min-height:240px;}
 
   .choiceBtn{
     padding:18px;
@@ -191,26 +183,19 @@ body{
     border-radius:16px;
   }
 
-  /* ✅ some os textos de baixo no mobile */
-  .textPanel{ display:none; }
+  .textPanel{display:none;}
+  .caption{display:block;}
 
-  /* ✅ mostra caption dentro do card */
-  .caption{ display:block; }
-
-  .bigLabel{ font-size:22px; }
-  .centerText{ font-size:20px; }
-
-  /* PDF ocupa mais tela */
-  .pdfFull{ min-height: 78vh; }
-  .pdfFull iframe{ height: 78vh; }
+  .pdfFull{min-height:78vh;}
+  .pdfFull iframe{height:78vh;}
 
   .pdfAction{
     padding:16px 16px;
     font-size:16px;
     border-radius:16px;
   }
-  .pdfAction.left{ left:10px; }
-  .pdfAction.right{ right:10px; }
+  .pdfAction.left{left:10px;}
+  .pdfAction.right{right:10px;}
 }
 </style>
 </head>
@@ -243,7 +228,6 @@ body{
       <iframe id="pdfFrame" title="PDF"></iframe>
     </div>
 
-    <!-- desktop usa esses 3 textos -->
     <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
     <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
     <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
@@ -252,9 +236,12 @@ body{
 </div>
 
 <script>
-const IMG="./";
-const TIMER=60000;
-const WHATS="https://wa.me/5541998518452";
+const IMG = "./";
+const TIMER = 60000;
+const WHATS = "https://wa.me/5541998518452";
+
+/* ✅ como você subiu tudo na raiz, o viewer é esse */
+const PDFJS_VIEWER = "./viewer.html";
 
 const grid = document.getElementById("grid");
 
@@ -319,15 +306,16 @@ function setTwoColsMode(on){
 
 function clearBtnOnly(){
   top1.classList.remove("btnOnly");
-  top3.classList.remove("btnOnly");
   top2.classList.remove("btnOnly");
+  top3.classList.remove("btnOnly");
 }
 
-/* ✅ escreve o texto tanto no desktop (embaixo) quanto no mobile (caption dentro do card) */
+/* ✅ texto único: desktop embaixo + mobile dentro do card */
 function setText(slot, html){
-  if(slot===1){ bot1.innerHTML = html||""; cap1.innerHTML = html||""; }
-  if(slot===2){ bot2.innerHTML = html||""; cap2.innerHTML = html||""; }
-  if(slot===3){ bot3.innerHTML = html||""; cap3.innerHTML = html||""; }
+  const v = html || "";
+  if(slot===1){ bot1.innerHTML=v; cap1.innerHTML=v; }
+  if(slot===2){ bot2.innerHTML=v; cap2.innerHTML=v; }
+  if(slot===3){ bot3.innerHTML=v; cap3.innerHTML=v; }
 }
 
 function resetLayout(){
@@ -343,10 +331,12 @@ function resetLayout(){
 
   setText(1,""); setText(2,""); setText(3,"");
 
-  t1.removeAttribute("src"); t2.removeAttribute("src"); t3.removeAttribute("src");
-  t1.style.display="block"; t2.style.display="block"; t3.style.display="block";
-
-  cap1.innerHTML=""; cap2.innerHTML=""; cap3.innerHTML="";
+  t1.removeAttribute("src");
+  t2.removeAttribute("src");
+  t3.removeAttribute("src");
+  t1.style.display="block";
+  t2.style.display="block";
+  t3.style.display="block";
 
   setTwoColsMode(false);
 }
@@ -371,48 +361,19 @@ function centerWithSideChoices(centerImgName, leftText, leftFn, rightText, right
   showPanel(bot2Panel);
 
   setText(2, centerBottomHtml || "");
-
   startT(timeoutFn);
 }
 
-/* =========================================================
-   ✅ PDF.JS autodetect (porque você subiu em outro nível)
-========================================================= */
-let PDFJS_VIEWER = null;
-
-/* tentei cobrir os caminhos mais comuns quando a galera sobe "torto" */
-const PDFJS_CANDIDATES = [
-  "./pdfjs/web/viewer.html",
-  "./pdfjs/viewer.html",
-  "./web/viewer.html",
-  "./viewer.html",
-  "./assets/pdfjs/web/viewer.html",
-  "./assets/web/viewer.html",
-  "./static/pdfjs/web/viewer.html"
-];
-
-async function resolvePdfViewer(){
-  for (const p of PDFJS_CANDIDATES){
-    try{
-      const r = await fetch(p, { method:"GET", cache:"no-store" });
-      if(r && r.ok){
-        PDFJS_VIEWER = p;
-        return;
-      }
-    }catch(e){}
-  }
-  PDFJS_VIEWER = null; // fallback
-}
-resolvePdfViewer();
-
-/* monta URL do viewer se existir */
+/* ✅ URL do PDF via PDF.js (sem miniaturas) */
 function pdfUrl(name){
   const filePath = "./" + name + ".pdf";
-  if(!PDFJS_VIEWER) return filePath; // fallback: abre direto (não quebra)
   return PDFJS_VIEWER + "?file=" + encodeURIComponent(filePath) + "#pagemode=none";
 }
 
-function showPdf(name, onBack, onTimeout){
+/* ✅ PDF: SEM TIMER */
+function showPdf(name, onBack){
+  clearT(); // mata o timer (não existe timer em pdf)
+
   hidePanel(top1); hidePanel(top2); hidePanel(top3);
   showPanel(pdfWrap);
 
@@ -420,8 +381,6 @@ function showPdf(name, onBack, onTimeout){
 
   pdfBack.onclick = () => { hidePanel(pdfWrap); onBack(); };
   pdfWhats.onclick = () => window.location.href = WHATS;
-
-  startT(() => { hidePanel(pdfWrap); onTimeout(); });
 }
 
 /* =========================
@@ -431,7 +390,6 @@ function inicio(){
   clearT();
   resetLayout();
 
-  /* desktop: 2 colunas (esquerda e direita). mobile: vira 1 coluna e fica ok */
   hidePanel(top2);
   hidePanel(bot2Panel);
   setTwoColsMode(true);
@@ -442,16 +400,15 @@ function inicio(){
   setBtn(b1, "continuar", () => etapa01_q1());
   setBtn(b3, "continuar", () => etapa02_q1());
 
-  /* ✅ textos agora aparecem no mobile dentro do card, e no desktop embaixo */
   setText(1, "<div class='bigLabel'>mulher</div>");
   setText(3, "<div class='bigLabel'>homem</div>");
 
   startT(() => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
 }
 
-/* ======================
+/* =========================
    ETAPA 01
-====================== */
+========================= */
 function etapa01_q1(){
   centerWithSideChoices(
     "0102",
@@ -470,9 +427,8 @@ function etapa01_fimNao(){
   hidePanel(bot1Panel); hidePanel(bot3Panel);
 
   setImg(t2, img("0105"));
-  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
-
   setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
+
   startT(() => inicio());
 }
 
@@ -513,7 +469,6 @@ function etapa01_emporium(){
 }
 
 function etapa01_pdf_prata(){
-  clearT();
   resetLayout();
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
@@ -521,11 +476,10 @@ function etapa01_pdf_prata(){
   setText(1, "<div class='bigLabel'>muito caro</div>");
   setText(3, "<div class='bigLabel'>quero comprar</div>");
 
-  showPdf("Prata", () => etapa01_tipo(), () => etapa01_emporium());
+  showPdf("Prata", () => etapa01_tipo());
 }
 
 function etapa01_pdf_ouro(){
-  clearT();
   resetLayout();
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
@@ -533,7 +487,7 @@ function etapa01_pdf_ouro(){
   setText(1, "<div class='bigLabel'>muito caro</div>");
   setText(3, "<div class='bigLabel'>quero comprar</div>");
 
-  showPdf("Ouro", () => etapa01_tipo(), () => etapa01_emporium());
+  showPdf("Ouro", () => etapa01_tipo());
 }
 
 function etapa01_barato(){
@@ -620,9 +574,9 @@ function etapa01_final(){
   startT(() => inicio());
 }
 
-/* ======================
+/* =========================
    ETAPA 02
-====================== */
+========================= */
 function etapa02_q1(){
   centerWithSideChoices(
     "0202",
@@ -641,9 +595,8 @@ function etapa02_fimNao(){
   hidePanel(bot1Panel); hidePanel(bot3Panel);
 
   setImg(t2, img("0205"));
-  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
-
   setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
+
   startT(() => inicio());
 }
 
@@ -684,7 +637,6 @@ function etapa02_emporium(){
 }
 
 function etapa02_pdf_prata(){
-  clearT();
   resetLayout();
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
@@ -692,11 +644,10 @@ function etapa02_pdf_prata(){
   setText(1, "<div class='bigLabel'>muito caro</div>");
   setText(3, "<div class='bigLabel'>quero comprar</div>");
 
-  showPdf("Prata", () => etapa02_tipo(), () => etapa02_emporium());
+  showPdf("Prata", () => etapa02_tipo());
 }
 
 function etapa02_pdf_ouro(){
-  clearT();
   resetLayout();
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
@@ -704,7 +655,7 @@ function etapa02_pdf_ouro(){
   setText(1, "<div class='bigLabel'>muito caro</div>");
   setText(3, "<div class='bigLabel'>quero comprar</div>");
 
-  showPdf("Ouro", () => etapa02_tipo(), () => etapa02_emporium());
+  showPdf("Ouro", () => etapa02_tipo());
 }
 
 function etapa02_barato(){
