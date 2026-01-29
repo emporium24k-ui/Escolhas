@@ -14,7 +14,6 @@
   --radius:18px;
   --gap:12px;
 
-  /* dourado escuro chamativo */
   --gold1:#e2b84a;
   --gold2:#b88a1b;
   --goldBorder:#f2d37a;
@@ -80,7 +79,7 @@ body{
 }
 
 .caption{
-  display:none; /* mobile usa */
+  display:none; /* no mobile aparece */
   padding:14px 14px 18px 14px;
   border-top:1px solid rgba(255,255,255,.10);
   font-size:18px; line-height:1.35;
@@ -110,7 +109,7 @@ body{
 .bigLabel{font-size:22px;font-weight:900}
 .centerText{text-align:center;font-size:20px;font-weight:900}
 
-/* botões de escolha embaixo */
+/* botões embaixo (quando usados) */
 .bottomChoice{
   display:flex;
   align-items:center;
@@ -148,8 +147,6 @@ body{
   min-height:70vh;
   background:#0b0b0d;
 }
-
-/* ✅ container com scroll e canvas centralizado */
 #pdfPages{
   height:70vh;
   overflow:auto;
@@ -162,7 +159,6 @@ body{
   background:#fff;
   box-shadow:0 14px 40px rgba(0,0,0,.55);
 }
-
 .pdfAction{
   position:absolute;
   top:14px;
@@ -182,6 +178,8 @@ body{
 /* MOBILE */
 @media (max-width:900px){
   body{padding:10px}
+
+  /* padrão mobile: empilha, mas a gente vai controlar via JS o que aparece */
   .grid, .grid.twoCols, .grid.centerOnly{
     grid-template-columns:1fr;
     grid-template-areas:
@@ -192,6 +190,7 @@ body{
       "bot2"
       "bot3";
   }
+
   .mediaPanel{min-height:260px;}
   .media{min-height:260px;}
   .media img{max-height:52vh;}
@@ -229,7 +228,7 @@ body{
       <div class="choiceBtn" id="top3btn"></div>
     </div>
 
-    <!-- PDF (render PDF.js) -->
+    <!-- PDF -->
     <div class="pdfFull hidden" id="pdfWrap">
       <div class="pdfAction left" id="pdfBack">voltar</div>
       <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
@@ -243,7 +242,6 @@ body{
   </div>
 </div>
 
-<!-- ✅ PDF.JS como módulo (usando seus arquivos locais) -->
 <script type="module">
 import * as pdfjsLib from "./pdf.mjs";
 pdfjsLib.GlobalWorkerOptions.workerSrc = "./pdf.worker.mjs";
@@ -283,9 +281,10 @@ const pdfBack = document.getElementById("pdfBack");
 const pdfWhats = document.getElementById("pdfWhats");
 
 let timer = null;
-let currentPdfTask = null;
 let currentPdfName = null;
 let resizeTO = null;
+
+const isMobile = () => window.matchMedia("(max-width:900px)").matches;
 
 function clearT(){ if(timer) clearTimeout(timer); timer=null; }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER_MS); }
@@ -308,6 +307,7 @@ function setImg(imgEl, src){
   imgEl.src = src || "";
 }
 
+/* ✅ botão só aparece se tiver label */
 function setTopBtn(btnEl, label, fn){
   btnEl.onclick = null;
   if(!label){
@@ -320,18 +320,18 @@ function setTopBtn(btnEl, label, fn){
   btnEl.onclick = fn;
 }
 
-function setBottomHTML(slotEl, html){
-  slotEl.innerHTML = html || "";
-}
+function setBottomHTML(slotEl, html){ slotEl.innerHTML = html || ""; }
+
 function setBottomButton(slotEl, label, fn){
   slotEl.innerHTML = "";
   const div = document.createElement("div");
   div.className = "bottomChoice";
-  div.textContent = label.toUpperCase();
+  div.textContent = (label||"").toUpperCase();
   div.onclick = fn;
   slotEl.appendChild(div);
 }
 
+/* ✅ reset forte (não deixa botão “fantasma”) */
 function resetAll(){
   clearT();
 
@@ -339,42 +339,48 @@ function resetAll(){
   hide(pdfWrap);
   pdfPages.innerHTML = "";
   currentPdfName = null;
-  currentPdfTask = null;
 
+  // mostra tudo e depois a tela decide o que esconder
   show(top1); show(top2); show(top3);
   show(bot1Panel); show(bot2Panel); show(bot3Panel);
 
   setGridMode("three");
 
-  setTopBtn(b1,"",null); setTopBtn(b2,"",null); setTopBtn(b3,"",null);
-
-  cap1.textContent=""; cap2.textContent=""; cap3.textContent="";
-  setBottomHTML(bot1slot,""); setBottomHTML(bot2slot,""); setBottomHTML(bot3slot,"");
-
+  // limpa imagens
   setImg(t1,""); setImg(t2,""); setImg(t3,"");
+
+  // limpa captions
+  cap1.textContent=""; cap2.textContent=""; cap3.textContent="";
+
+  // limpa botões topo (pra não sobrar em mobile)
+  setTopBtn(b1,"",null);
+  setTopBtn(b2,"",null);
+  setTopBtn(b3,"",null);
+
+  // limpa textos de baixo
+  setBottomHTML(bot1slot,"");
+  setBottomHTML(bot2slot,"");
+  setBottomHTML(bot3slot,"");
 }
 
 /* =========================
-   PDF.JS RENDER (sem iframe)
+   PDF Render (PDF.js)
 ========================= */
 async function renderPdfToPages(pdfName){
   currentPdfName = pdfName;
   pdfPages.innerHTML = "<div style='text-align:center;opacity:.85;padding:28px;font-weight:800'>carregando pdf…</div>";
 
   const url = "./" + pdfName + ".pdf";
-  const task = pdfjsLib.getDocument({ url, withCredentials:false });
-  currentPdfTask = task;
-
   let pdf;
   try{
-    pdf = await task.promise;
+    pdf = await pdfjsLib.getDocument({ url }).promise;
   }catch(e){
     pdfPages.innerHTML = "<div style='text-align:center;color:#ffb4b4;padding:28px;font-weight:900'>Não consegui abrir o PDF. Verifique se "+pdfName+".pdf está na mesma pasta do index.html.</div>";
     return;
   }
 
   pdfPages.innerHTML = "";
-  const containerWidth = pdfPages.clientWidth - 24; // padding
+  const containerWidth = pdfPages.clientWidth - 24;
 
   for(let pageNum=1; pageNum<=pdf.numPages; pageNum++){
     const page = await pdf.getPage(pageNum);
@@ -384,10 +390,8 @@ async function renderPdfToPages(pdfName){
 
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d", { alpha:false });
-
     canvas.width = Math.floor(viewport.width);
     canvas.height = Math.floor(viewport.height);
-
     pdfPages.appendChild(canvas);
 
     await page.render({ canvasContext: ctx, viewport }).promise;
@@ -398,7 +402,9 @@ function showPdf(pdfName, onBack){
   clearT(); // ✅ sem timer no PDF
 
   hide(top1); hide(top2); hide(top3);
-  show(wrapPDFOnly());
+  hide(bot1Panel); hide(bot2Panel); hide(bot3Panel);
+
+  show(pdfWrap);
 
   pdfBack.onclick = () => { hide(pdfWrap); onBack(); };
   pdfWhats.onclick = () => window.location.href = WHATS;
@@ -406,12 +412,6 @@ function showPdf(pdfName, onBack){
   renderPdfToPages(pdfName);
 }
 
-function wrapPDFOnly(){
-  show(pdfWrap);
-  return pdfWrap;
-}
-
-// re-render no resize (pra ficar bom no celular/PC)
 window.addEventListener("resize", () => {
   if(!currentPdfName) return;
   clearTimeout(resizeTO);
@@ -419,22 +419,22 @@ window.addEventListener("resize", () => {
 });
 
 /* =========================
-   RENDER ENGINE
+   Render Engine
 ========================= */
 function renderScreen(screen){
   resetAll();
+
+  // ✅ regra geral: se não tiver nada em um slot, some com ele no mobile para não virar “bagunça”
+  const mobile = isMobile();
+
   setGridMode(screen.mode || "three");
 
   if(screen.type==="pdf"){
-    if(screen.bottom1) setBottomHTML(bot1slot, screen.bottom1);
-    if(screen.bottom2) setBottomHTML(bot2slot, screen.bottom2);
-    if(screen.bottom3) setBottomHTML(bot3slot, screen.bottom3);
-    if(!screen.bottom2) hide(bot2Panel);
-
     showPdf(screen.pdfName, screen.onBack);
     return;
   }
 
+  // esconder slots
   if(screen.hideTop1) hide(top1);
   if(screen.hideTop2) hide(top2);
   if(screen.hideTop3) hide(top3);
@@ -443,26 +443,38 @@ function renderScreen(screen){
   if(screen.hideBot2) hide(bot2Panel);
   if(screen.hideBot3) hide(bot3Panel);
 
+  // imagens
   if(screen.img1) setImg(t1, img(screen.img1));
   if(screen.img2) setImg(t2, img(screen.img2));
   if(screen.img3) setImg(t3, img(screen.img3));
 
+  // botões topo
   setTopBtn(b1, screen.topBtn1Label || "", screen.topBtn1Action || null);
   setTopBtn(b2, screen.topBtn2Label || "", screen.topBtn2Action || null);
   setTopBtn(b3, screen.topBtn3Label || "", screen.topBtn3Action || null);
 
-  setBottomHTML(bot1slot, screen.bottom1 || "");
-  setBottomHTML(bot2slot, screen.bottom2 || "");
-  setBottomHTML(bot3slot, screen.bottom3 || "");
+  // textos / botões de baixo
+  if(screen.bottom1) setBottomHTML(bot1slot, screen.bottom1);
+  if(screen.bottom2) setBottomHTML(bot2slot, screen.bottom2);
+  if(screen.bottom3) setBottomHTML(bot3slot, screen.bottom3);
 
   if(typeof screen.bottomBtn1Action === "function") setBottomButton(bot1slot, screen.bottomBtn1Label, screen.bottomBtn1Action);
   if(typeof screen.bottomBtn2Action === "function") setBottomButton(bot2slot, screen.bottomBtn2Label, screen.bottomBtn2Action);
   if(typeof screen.bottomBtn3Action === "function") setBottomButton(bot3slot, screen.bottomBtn3Label, screen.bottomBtn3Action);
 
+  // captions (no mobile ajudam)
   cap1.innerHTML = screen.cap1 || screen.bottom1 || "";
   cap2.innerHTML = screen.cap2 || screen.bottom2 || "";
   cap3.innerHTML = screen.cap3 || screen.bottom3 || "";
 
+  // ✅ limpeza mobile automática: se o painel de baixo ficou “vazio”, some com ele
+  if(mobile){
+    if(!bot1slot.innerHTML.trim()) hide(bot1Panel);
+    if(!bot2slot.innerHTML.trim()) hide(bot2Panel);
+    if(!bot3slot.innerHTML.trim()) hide(bot3Panel);
+  }
+
+  // timer
   if(screen.timer===false){
     clearT();
   }else if(typeof screen.onTimeout==="function"){
@@ -471,9 +483,32 @@ function renderScreen(screen){
 }
 
 /* =========================
-   FLOW (EXATO)
+   FLOW
 ========================= */
+
+/* ✅ INICIO: no mobile fica só 2 cards (mulher/homem) e SEM linha de baixo */
 function inicio(){
+  const mobile = isMobile();
+
+  if(mobile){
+    renderScreen({
+      mode:"three",              // no CSS mobile empilha mesmo
+      hideTop2:true,             // sem meio
+      hideBot1:true, hideBot2:true, hideBot3:true,  // ✅ remove “mulher/homem” duplicado
+      img1:"01",
+      img3:"02",
+      cap1:"<div class='bigLabel'>mulher</div>",
+      cap3:"<div class='bigLabel'>homem</div>",
+      topBtn1Label:"continuar",
+      topBtn3Label:"continuar",
+      topBtn1Action: etapa01_q1,
+      topBtn3Action: etapa02_q1,
+      onTimeout: () => (Math.random()<0.5 ? etapa01_q1() : etapa02_q1())
+    });
+    return;
+  }
+
+  // desktop (2 colunas + textos embaixo)
   renderScreen({
     mode:"two",
     hideTop2:true,
@@ -493,9 +528,10 @@ function inicio(){
 /* ETAPA 01 */
 function etapa01_q1(){
   renderScreen({
-    mode:"three",
+    mode:"center",
     hideTop1:true, hideTop3:true,
     img2:"0102",
+    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
     bottomBtn1Label:"sim",
     bottomBtn3Label:"não",
@@ -567,24 +603,8 @@ function etapa01_baratesa_q(){
   });
 }
 
-function etapa01_pdf_prata(){
-  renderScreen({
-    type:"pdf",
-    pdfName:"Prata",
-    bottom1:"<div class='bigLabel'>muito caro</div>",
-    bottom3:"<div class='bigLabel'>quero comprar</div>",
-    onBack: etapa01_tipo
-  });
-}
-function etapa01_pdf_ouro(){
-  renderScreen({
-    type:"pdf",
-    pdfName:"Ouro",
-    bottom1:"<div class='bigLabel'>muito caro</div>",
-    bottom3:"<div class='bigLabel'>quero comprar</div>",
-    onBack: etapa01_tipo
-  });
-}
+function etapa01_pdf_prata(){ showPdf("Prata", etapa01_tipo); }
+function etapa01_pdf_ouro(){ showPdf("Ouro", etapa01_tipo); }
 
 function etapa01_tapeada(){
   renderScreen({
@@ -647,9 +667,10 @@ function etapa01_luta2(){
 /* ETAPA 02 */
 function etapa02_q1(){
   renderScreen({
-    mode:"three",
+    mode:"center",
     hideTop1:true, hideTop3:true,
     img2:"0202",
+    hideBot1:true, hideBot3:true,
     bottom2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
     bottomBtn1Label:"sim",
     bottomBtn3Label:"não",
@@ -721,24 +742,8 @@ function etapa02_baratesa_q(){
   });
 }
 
-function etapa02_pdf_prata(){
-  renderScreen({
-    type:"pdf",
-    pdfName:"Prata",
-    bottom1:"<div class='bigLabel'>muito caro</div>",
-    bottom3:"<div class='bigLabel'>quero comprar</div>",
-    onBack: etapa02_tipo
-  });
-}
-function etapa02_pdf_ouro(){
-  renderScreen({
-    type:"pdf",
-    pdfName:"Ouro",
-    bottom1:"<div class='bigLabel'>muito caro</div>",
-    bottom3:"<div class='bigLabel'>quero comprar</div>",
-    onBack: etapa02_tipo
-  });
-}
+function etapa02_pdf_prata(){ showPdf("Prata", etapa02_tipo); }
+function etapa02_pdf_ouro(){ showPdf("Ouro", etapa02_tipo); }
 
 function etapa02_tapeado(){
   renderScreen({
