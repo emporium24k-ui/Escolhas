@@ -1,658 +1,351 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Landing Interativa</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Landing Interativa</title>
 
-  <style>
-    :root{
-      --bg:#000;
-      --text:#f4f4f6;
-      --border:rgba(255,255,255,.14);
-      --radius:18px;
-      --gap:12px;
-      --btnBg:rgba(0,0,0,.35);
-      --btnBgHover:rgba(0,0,0,.55);
-    }
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
-      background: var(--bg);
-      color: var(--text);
-      padding: 18px;
-    }
-    .wrap{
-      width:min(1100px, 100%);
-      margin:0 auto;
-      display:grid;
-      gap: var(--gap);
-    }
+<style>
+:root{
+  --bg:#000;
+  --text:#f4f4f6;
+  --border:rgba(255,255,255,.14);
+  --radius:18px;
+  --gap:12px;
 
-    .grid6{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-areas:
-        "top1 top2 top3"
-        "bot1 bot2 bot3";
-      gap: var(--gap);
-      align-items:start;
-    }
-    @media (max-width: 900px){
-      .grid6{
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "top1"
-          "top2"
-          "top3"
-          "bot1"
-          "bot2"
-          "bot3";
-      }
-    }
+  /* DOURADO ESCURO */
+  --gold:#b88a1b;
+  --gold2:#e2b84a;
+  --goldBorder:#f2d37a;
+  --goldText:#0b0b0d;
+  --goldGlow: rgba(184,138,27,.45);
+}
 
-    .panel{
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      overflow:hidden;
-      background: rgba(255,255,255,.02);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      min-height: 120px;
-    }
+*{box-sizing:border-box}
 
-    .mediaPanel{ position:relative; }
-    .media{ width:100%; display:block; background:#0a0a0a; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  padding:18px;
+}
 
-    .media img{
-      width:100%;
-      height:auto;
-      display:block;
-      background:#0a0a0a;
-    }
+.wrap{
+  max-width:1100px;
+  margin:auto;
+}
 
-    .choiceBtn{
-      position:absolute;
-      left:12px; right:12px; bottom:12px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.16);
-      background: var(--btnBg);
-      backdrop-filter: blur(10px);
-      color: var(--text);
-      cursor:pointer;
-      user-select:none;
-      transition: background .15s ease, border-color .15s ease, transform .08s ease;
-      text-align:center;
-      font-weight:800;
-      letter-spacing:.2px;
-    }
-    .choiceBtn:hover{
-      background: var(--btnBgHover);
-      border-color: rgba(255,255,255,.26);
-    }
-    .choiceBtn:active{ transform: translateY(1px); }
+.grid6{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-areas:
+    "top1 top2 top3"
+    "bot1 bot2 bot3";
+  gap:var(--gap);
+}
 
-    .textPanel{ padding:14px 14px 16px; min-height: unset; }
-    .textPanel p{
-      margin:0;
-      font-size:18px;
-      line-height:1.45;
-      color:rgba(255,255,255,.92);
-      word-break: break-word;
-    }
+@media(max-width:900px){
+  .grid6{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "top1""top2""top3"
+      "bot1""bot2""bot3";
+  }
+}
 
-    .ghost{
-      visibility: hidden !important;
-      pointer-events: none !important;
-      box-shadow:none !important;
-      border-color: transparent !important;
-      background: transparent !important;
-    }
+.panel{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:rgba(255,255,255,.02);
+  overflow:hidden;
+}
 
-    .isHidden{ display:none !important; }
+.mediaPanel{position:relative}
+.media img{width:100%;display:block}
 
-    .bigLabel{ font-size:22px; font-weight:900; letter-spacing:.2px; }
-    .centerText{ text-align:center; font-size:20px; line-height:1.35; font-weight:900; }
+.choiceBtn{
+  position:absolute;
+  left:12px;right:12px;bottom:12px;
+  padding:14px;
+  border-radius:14px;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:var(--goldText);
+  border:1px solid var(--goldBorder);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.6),
+    0 0 30px var(--goldGlow);
+  font-weight:950;
+  text-transform:uppercase;
+  text-align:center;
+  cursor:pointer;
+}
 
-    #top1{ grid-area: top1; }
-    #top2{ grid-area: top2; }
-    #top3{ grid-area: top3; }
-    #bot1{ grid-area: bot1; }
-    #bot2{ grid-area: bot2; }
-    #bot3{ grid-area: bot3; }
+.choiceBtn:hover{filter:brightness(1.08)}
+.choiceBtn:active{transform:translateY(2px)}
 
-    /* PDF FULL */
-    .pdfFull{
-      grid-area: top1 / top1 / top3 / top3;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      overflow:hidden;
-      background: rgba(255,255,255,.02);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      position: relative;
-      min-height: 70vh;
-    }
-    .pdfFull iframe{
-      width:100%;
-      height:70vh;
-      border:0;
-      display:block;
-      background:#0a0a0a;
-    }
-    .pdfFull.isHidden{ display:none !important; }
+.textPanel{padding:16px}
+.textPanel p{margin:0;font-size:18px}
 
-    .pdfAction{
-      position:absolute;
-      top:12px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
-      color: var(--text);
-      cursor:pointer;
-      user-select:none;
-      transition: background .15s ease, border-color .15s ease, transform .08s ease;
-      text-align:center;
-      font-weight:800;
-      letter-spacing:.2px;
-      z-index: 5;
-      min-width: 180px;
-    }
-    .pdfAction:hover{
-      background: rgba(0,0,0,.72);
-      border-color: rgba(255,255,255,.26);
-    }
-    .pdfAction:active{ transform: translateY(1px); }
-    .pdfAction.left{ left:12px; }
-    .pdfAction.right{ right:12px; }
-  </style>
+.bigLabel{font-size:22px;font-weight:900}
+.centerText{text-align:center;font-size:20px;font-weight:900}
+
+.ghost{visibility:hidden;pointer-events:none}
+
+#top1{grid-area:top1}
+#top2{grid-area:top2}
+#top3{grid-area:top3}
+#bot1{grid-area:bot1}
+#bot2{grid-area:bot2}
+#bot3{grid-area:bot3}
+
+/* PDF FULL */
+.pdfFull{
+  grid-area:top1 / top1 / top3 / top3;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  position:relative;
+  overflow:hidden;
+  min-height:70vh;
+}
+
+.pdfFull iframe{
+  width:100%;
+  height:70vh;
+  border:0;
+}
+
+.pdfAction{
+  position:absolute;
+  top:14px;
+  padding:14px 18px;
+  border-radius:14px;
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:var(--goldText);
+  border:1px solid var(--goldBorder);
+  font-weight:950;
+  cursor:pointer;
+}
+
+.pdfAction.left{left:14px}
+.pdfAction.right{right:14px}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="grid6">
+<div class="wrap">
+<div class="grid6">
 
-      <div class="panel mediaPanel" id="top1">
-        <div class="media"><img id="top1img" alt="" /></div>
-        <div class="choiceBtn" id="top1btn" role="button" tabindex="0"></div>
-      </div>
+<div class="panel mediaPanel" id="top1">
+  <div class="media"><img id="top1img"></div>
+  <div class="choiceBtn" id="top1btn"></div>
+</div>
 
-      <div class="panel mediaPanel" id="top2">
-        <div class="media"><img id="top2img" alt="" /></div>
-        <div class="choiceBtn" id="top2btn" role="button" tabindex="0"></div>
-      </div>
+<div class="panel mediaPanel" id="top2">
+  <div class="media"><img id="top2img"></div>
+  <div class="choiceBtn" id="top2btn"></div>
+</div>
 
-      <div class="panel mediaPanel" id="top3">
-        <div class="media"><img id="top3img" alt="" /></div>
-        <div class="choiceBtn" id="top3btn" role="button" tabindex="0"></div>
-      </div>
+<div class="panel mediaPanel" id="top3">
+  <div class="media"><img id="top3img"></div>
+  <div class="choiceBtn" id="top3btn"></div>
+</div>
 
-      <div class="pdfFull isHidden" id="pdfFullWrap">
-        <div class="pdfAction left" id="pdfBackBtn" role="button" tabindex="0">voltar</div>
-        <div class="pdfAction right" id="pdfWhatsBtn" role="button" tabindex="0">chamar no whatsapp</div>
-        <iframe id="pdfFullFrame" title="PDF"></iframe>
-      </div>
+<div class="pdfFull ghost" id="pdfWrap">
+  <div class="pdfAction left" id="pdfBack">voltar</div>
+  <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
+  <iframe id="pdfFrame"></iframe>
+</div>
 
-      <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
-      <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
-      <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
+<div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
+<div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
+<div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
 
-    </div>
-  </div>
+</div>
+</div>
 
 <script>
-  const IMG_BASE = "./";
-  const IMG_EXT  = ".png";
-  const PDF_BASE = "./";
-  const WHATSAPP_URL = "https://wa.me/5541998518452";
-  const TIMER_SECONDS = 60;
-
-  const top1 = document.getElementById("top1");
-  const top2 = document.getElementById("top2");
-  const top3 = document.getElementById("top3");
-
-  const top1img = document.getElementById("top1img");
-  const top2img = document.getElementById("top2img");
-  const top3img = document.getElementById("top3img");
-
-  const top1btn = document.getElementById("top1btn");
-  const top2btn = document.getElementById("top2btn");
-  const top3btn = document.getElementById("top3btn");
-
-  const bot1 = document.getElementById("bot1");
-  const bot2 = document.getElementById("bot2");
-  const bot3 = document.getElementById("bot3");
-
-  const bot1p = document.getElementById("bot1p");
-  const bot2p = document.getElementById("bot2p");
-  const bot3p = document.getElementById("bot3p");
-
-  const pdfFullWrap = document.getElementById("pdfFullWrap");
-  const pdfFullFrame = document.getElementById("pdfFullFrame");
-  const pdfBackBtn = document.getElementById("pdfBackBtn");
-  const pdfWhatsBtn = document.getElementById("pdfWhatsBtn");
-
-  let timerHandle = null;
-  let onTimeout = null;
-
-  function clearTimer(){
-    if (timerHandle) clearInterval(timerHandle);
-    timerHandle = null;
-    onTimeout = null;
-  }
-
-  function startTimer(seconds, timeoutFn){
-    clearTimer();
-    let remaining = seconds;
-    onTimeout = timeoutFn;
-    timerHandle = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0){
-        clearTimer();
-        if (typeof onTimeout === "function") onTimeout();
-      }
-    }, 1000);
-  }
-
-  function setBtn(btnEl, label, fn){
-    btnEl.textContent = label || "";
-    btnEl.style.display = label ? "flex" : "none";
-    btnEl.onclick = null;
-    btnEl.onkeydown = null;
-    if (!label) return;
-    const act = () => { if (typeof fn === "function") fn(); };
-    btnEl.onclick = act;
-    btnEl.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") act(); };
-  }
-
-  function setBottom(htmlLeft, htmlMid, htmlRight, showLeft=true, showMid=true, showRight=true){
-    bot1.classList.toggle("ghost", !showLeft);
-    bot2.classList.toggle("ghost", !showMid);
-    bot3.classList.toggle("ghost", !showRight);
-
-    bot1p.innerHTML = showLeft ? (htmlLeft || "") : "";
-    bot2p.innerHTML = showMid ? (htmlMid || "") : "";
-    bot3p.innerHTML = showRight ? (htmlRight || "") : "";
-  }
-
-  function setTopPresence(show1, show2, show3){
-    top1.classList.toggle("ghost", !show1);
-    top2.classList.toggle("ghost", !show2);
-    top3.classList.toggle("ghost", !show3);
-  }
-
-  function imagePathByName(name){
-    if (name === "03") return IMG_BASE + "03.jpeg";
-    return IMG_BASE + name + IMG_EXT;
-  }
-
-  function safeSetImg(imgEl, src){
-    imgEl.onerror = () => { imgEl.style.display = "none"; imgEl.onerror = null; };
-    imgEl.style.display = "block";
-    imgEl.src = src;
-  }
-
-  function setTopImage(which, name){
-    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
-    safeSetImg(imgEl, imagePathByName(name));
-  }
-
-  function hidePdfFull(){
-    pdfFullWrap.classList.add("isHidden");
-    pdfFullFrame.removeAttribute("src");
-  }
-
-  function showPdfFull(pdfName, onBack, onTimeoutFn){
-    setTopPresence(false, false, false);
-    pdfFullWrap.classList.remove("isHidden");
-    pdfFullFrame.src = PDF_BASE + pdfName + ".pdf";
-
-    pdfBackBtn.onclick = () => { hidePdfFull(); onBack(); };
-    pdfBackBtn.onkeydown = (e) => { if (e.key==="Enter"||e.key===" ") { hidePdfFull(); onBack(); } };
-
-    pdfWhatsBtn.onclick = () => window.location.href = WHATSAPP_URL;
-    pdfWhatsBtn.onkeydown = (e) => { if (e.key==="Enter"||e.key===" ") window.location.href = WHATSAPP_URL; };
-
-    startTimer(TIMER_SECONDS, () => { hidePdfFull(); onTimeoutFn(); });
-  }
-
-  /* =========================
-     INÍCIO
-  ========================= */
-  function inicio(){
-    clearTimer();
-    hidePdfFull();
-
-    setTopPresence(true, false, true);
-    setTopImage(1, "01");
-    setTopImage(3, "02");
-
-    setBtn(top1btn, "continuar", () => etapa01_q1());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_q1());
-
-    setBottom(`<div class="bigLabel">mulher</div>`, ``, `<div class="bigLabel">homem</div>`, true, false, true);
-
-    startTimer(TIMER_SECONDS, () => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
-  }
-
-  /* =========================================================
-     ETAPA 01 (mantida)
-  ========================================================= */
-  function etapa01_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0102");
-
-    setBtn(top1btn, "sim", () => etapa01_tipoJoalheria());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "não", () => etapa01_fimNao());
-
-    setBottom(``, `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`, ``, false, true, false);
-    startTimer(TIMER_SECONDS, () => etapa01_fimNao());
-  }
-
-  function etapa01_fimNao(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0105");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "", null);
-
-    setBottom(``, `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`, ``, false, true, false);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  function etapa01_tipoJoalheria(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0401");
-    setTopImage(2, "0103");
-    setTopImage(3, "0301");
-
-    setBtn(top1btn, "continuar", () => etapa01_baratesa_q1());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_emporium_q1());
-
-    setBottom(`<div class="bigLabel">Loja Baratesa</div>`, `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`, `<div class="bigLabel">Emporium24k</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  function etapa01_emporium_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0103");
-    setTopImage(2, "03");
-    setTopImage(3, "0103");
-
-    setBtn(top1btn, "continuar", () => etapa01_pdf_prata());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_pdf_ouro());
-
-    setBottom(`<div class="bigLabel">quero um par de anéis de namoro</div>`, `<div class="centerText">Olá como posso te ajudar?</div>`, `<div class="bigLabel">quero um par de anéis de casamento</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => etapa01_tipoJoalheria());
-  }
-
-  function etapa01_baratesa_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0103");
-    setTopImage(2, "04");
-    setTopImage(3, "0103");
-
-    setBtn(top1btn, "continuar", () => etapa01_baratesa_tapeada());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_tipoJoalheria());
-
-    setBottom(`<div class="bigLabel">sim</div>`, `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`, `<div class="bigLabel">não</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => etapa01_tipoJoalheria());
-  }
-
-  function etapa01_pdf_prata(){
-    clearTimer();
-    showPdfFull("Prata", () => etapa01_tipoJoalheria(), () => etapa01_emporium_q1());
-    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
-  }
-
-  function etapa01_pdf_ouro(){
-    clearTimer();
-    showPdfFull("Ouro", () => etapa01_tipoJoalheria(), () => etapa01_emporium_q1());
-    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
-  }
-
-  function etapa01_baratesa_tapeada(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0105");
-    setTopImage(2, "0108");
-    setTopImage(3, "0106");
-
-    setBtn(top1btn, "continuar", () => inicio());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_baratesa_alerta());
-
-    setBottom(`<div class="bigLabel">Desistir</div>`, `<div class="centerText">FUI TAPEADA</div>`, `<div class="bigLabel">voltar na loja barateza</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  function etapa01_baratesa_alerta(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0106");
-    setTopImage(2, "0402");
-    setTopImage(3, "0105");
-
-    setBtn(top1btn, "continuar", () => etapa01_baratesa_lutar());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
-
-    setBottom(`<div class="bigLabel">LUTAR</div>`, `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`, `<div class="bigLabel">Desistir</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  function etapa01_baratesa_lutar(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0403");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_baratesa_final());
-
-    setBottom(``, ``, ``, false, false, false);
-    startTimer(TIMER_SECONDS, () => etapa01_baratesa_final());
-  }
-
-  function etapa01_baratesa_final(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0107");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
-
-    setBottom(``, ``, ``, false, false, false);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  /* =========================================================
-     ETAPA 02 (ATUALIZADA conforme sua nova regra)
-  ========================================================= */
-  function etapa02_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0202");
-
-    setBtn(top1btn, "sim", () => etapa02_tipoJoalheria());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "não", () => etapa02_fimNao());
-
-    setBottom(``, `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`, ``, false, true, false);
-    startTimer(TIMER_SECONDS, () => etapa02_fimNao());
-  }
-
-  function etapa02_fimNao(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0205");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "", null);
-
-    setBottom(``, `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`, ``, false, true, false);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  // Etapa 02 parte 2 botão "sim"
-  function etapa02_tipoJoalheria(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0401");
-    setTopImage(2, "0203");
-    setTopImage(3, "0301");
-
-    setBtn(top1btn, "continuar", () => etapa02_baratesa_q1());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_emporium_q1());
-
-    setBottom(`<div class="bigLabel">Loja Baratesa</div>`, `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`, `<div class="bigLabel">Emporium24k</div>`, true, true, true);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  // Etapa 02 parte 3 botão Emporium24k
-  function etapa02_emporium_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0203");
-    setTopImage(2, "03");
-    setTopImage(3, "0203");
-
-    setBtn(top1btn, "continuar", () => etapa02_pdf_prata());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_pdf_ouro());
-
-    setBottom(`<div class="bigLabel">quero um par de anéis de namoro</div>`, `<div class="centerText">Olá como posso te ajudar?</div>`, `<div class="bigLabel">quero um par de anéis de casamento</div>`, true, true, true);
-
-    // ✅ agora volta para Etapa 02 parte 2 "sim"
-    startTimer(TIMER_SECONDS, () => etapa02_tipoJoalheria());
-  }
-
-  // Etapa 02 parte 3 botão Loja Baratesa
-  function etapa02_baratesa_q1(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0203");
-    setTopImage(2, "04");
-    setTopImage(3, "0203");
-
-    setBtn(top1btn, "continuar", () => etapa02_baratesa_tapeado());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_tipoJoalheria()); // "não" volta pro sim
-
-    setBottom(`<div class="bigLabel">sim</div>`, `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`, `<div class="bigLabel">não</div>`, true, true, true);
-
-    // ✅ agora volta para Etapa 02 parte 2 "sim"
-    startTimer(TIMER_SECONDS, () => etapa02_tipoJoalheria());
-  }
-
-  // Etapa 02 parte 4 namoro Emporium24k
-  function etapa02_pdf_prata(){
-    clearTimer();
-    // ✅ voltar = Etapa 02 parte 2 "sim"
-    // ✅ timeout = volta para Etapa 02 parte 3 Emporium
-    showPdfFull("Prata", () => etapa02_tipoJoalheria(), () => etapa02_emporium_q1());
-    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
-  }
-
-  // Etapa 02 parte 4 casamento Emporium24k
-  function etapa02_pdf_ouro(){
-    clearTimer();
-    showPdfFull("Ouro", () => etapa02_tipoJoalheria(), () => etapa02_emporium_q1());
-    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
-  }
-
-  // Etapa 02 parte 4 botão "sim" Loja Baratesa (tapeado)
-  function etapa02_baratesa_tapeado(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0205");
-    setTopImage(2, "0208");
-    setTopImage(3, "0206");
-
-    setBtn(top1btn, "continuar", () => inicio());               // desistir
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_baratesa_alerta()); // voltar na barateza
-
-    setBottom(`<div class="bigLabel">Desistir</div>`, `<div class="centerText">FUI TAPEADO</div>`, `<div class="bigLabel">voltar na loja barateza</div>`, true, true, true);
-
-    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
-  }
-
-  // Etapa 02 parte 5 voltar na loja barateza
-  function etapa02_baratesa_alerta(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(true, true, true);
-
-    setTopImage(1, "0206"); // lutar
-    setTopImage(2, "0402");
-    setTopImage(3, "0205"); // desistir
-
-    setBtn(top1btn, "continuar", () => etapa02_baratesa_lutar());
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
-
-    setBottom(`<div class="bigLabel">LUTAR</div>`, `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`, `<div class="bigLabel">Desistir</div>`, true, true, true);
-
-    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
-  }
-
-  // Etapa 02 parte 6 LUTAR
-  function etapa02_baratesa_lutar(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0403");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_baratesa_final());
-
-    setBottom(``, ``, ``, false, false, false);
-    startTimer(TIMER_SECONDS, () => etapa02_baratesa_final());
-  }
-
-  // Etapa 02 parte 7 continuar (0207 e volta pro início)
-  function etapa02_baratesa_final(){
-    clearTimer(); hidePdfFull();
-    setTopPresence(false, true, false);
-    setTopImage(2, "0207");
-
-    setBtn(top1btn, "", null);
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio());
-
-    setBottom(``, ``, ``, false, false, false);
-    startTimer(TIMER_SECONDS, () => inicio());
-  }
-
-  inicio();
+/* CONFIG */
+const IMG="./";
+const PDF="./";
+const TIMER=60000;
+const WHATS="https://wa.me/5541998518452";
+
+/* ELEMENTOS */
+const t1=document.getElementById("top1img");
+const t2=document.getElementById("top2img");
+const t3=document.getElementById("top3img");
+const b1=document.getElementById("top1btn");
+const b2=document.getElementById("top2btn");
+const b3=document.getElementById("top3btn");
+const bot1=document.getElementById("bot1p");
+const bot2=document.getElementById("bot2p");
+const bot3=document.getElementById("bot3p");
+const pdfWrap=document.getElementById("pdfWrap");
+const pdfFrame=document.getElementById("pdfFrame");
+const pdfBack=document.getElementById("pdfBack");
+const pdfWhats=document.getElementById("pdfWhats");
+
+let timer;
+
+/* HELPERS */
+function img(n){return n==="03"?IMG+"03.jpeg":IMG+n+".png"}
+function clearT(){if(timer)clearTimeout(timer)}
+function startT(fn){clearT();timer=setTimeout(fn,TIMER)}
+
+function hidePdf(){pdfWrap.classList.add("ghost")}
+function showPdf(name,back,timeout){
+  pdfWrap.classList.remove("ghost");
+  pdfFrame.src=PDF+name+".pdf";
+  pdfBack.onclick=()=>{hidePdf();back()};
+  pdfWhats.onclick=()=>window.location.href=WHATS;
+  startT(()=>{hidePdf();timeout()});
+}
+
+/* INICIO */
+function inicio(){
+  hidePdf();
+  t1.src=img("01"); t3.src=img("02");
+  b1.textContent="continuar"; b3.textContent="continuar";
+  b1.onclick=etapa01_q1; b3.onclick=etapa02_q1;
+  bot1.innerHTML="<div class='bigLabel'>mulher</div>";
+  bot2.innerHTML="";
+  bot3.innerHTML="<div class='bigLabel'>homem</div>";
+  startT(()=>Math.random()<.5?etapa01_q1():etapa02_q1());
+}
+
+/* ======================
+   ETAPA 01 (MULHER)
+====================== */
+function etapa01_q1(){
+  t2.src=img("0102");
+  b1.textContent="sim"; b3.textContent="não";
+  b1.onclick=etapa01_tipo; b3.onclick=etapa01_fimNao;
+  bot2.innerHTML="<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
+  startT(etapa01_fimNao);
+}
+
+function etapa01_fimNao(){
+  t2.src=img("0105");
+  b1.textContent=b3.textContent="";
+  bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
+  startT(inicio);
+}
+
+function etapa01_tipo(){
+  t1.src=img("0401"); t2.src=img("0103"); t3.src=img("0301");
+  b1.textContent="continuar"; b3.textContent="continuar";
+  b1.onclick=etapa01_barato; b3.onclick=etapa01_emporium;
+  bot1.innerHTML="<div class='bigLabel'>Loja Baratesa</div>";
+  bot2.innerHTML="<div class='centerText'>Qual tipo de joalheria você escolheria?</div>";
+  bot3.innerHTML="<div class='bigLabel'>Emporium24k</div>";
+  startT(inicio);
+}
+
+function etapa01_emporium(){
+  t2.src=img("03");
+  b1.onclick=()=>showPdf("Prata",etapa01_tipo,etapa01_emporium);
+  b3.onclick=()=>showPdf("Ouro",etapa01_tipo,etapa01_emporium);
+}
+
+function etapa01_barato(){
+  t2.src=img("04");
+  b1.onclick=etapa01_tapeada;
+  b3.onclick=etapa01_tipo;
+}
+
+function etapa01_tapeada(){
+  t2.src=img("0108");
+  bot2.innerHTML="<div class='centerText'>FUI TAPEADA</div>";
+  b1.onclick=inicio;
+  b3.onclick=etapa01_alerta;
+  startT(inicio);
+}
+
+function etapa01_alerta(){
+  t2.src=img("0402");
+  bot2.innerHTML="<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>";
+  b1.onclick=etapa01_lutar;
+  b3.onclick=inicio;
+  startT(inicio);
+}
+
+function etapa01_lutar(){
+  t2.src=img("0403");
+  b3.onclick=etapa01_final;
+  startT(etapa01_final);
+}
+
+function etapa01_final(){
+  t2.src=img("0107");
+  b3.onclick=inicio;
+  startT(inicio);
+}
+
+/* ======================
+   ETAPA 02 (HOMEM)
+====================== */
+function etapa02_q1(){
+  t2.src=img("0202");
+  b1.textContent="sim"; b3.textContent="não";
+  b1.onclick=etapa02_tipo; b3.onclick=etapa02_fimNao;
+  bot2.innerHTML="<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
+  startT(etapa02_fimNao);
+}
+
+function etapa02_fimNao(){
+  t2.src=img("0205");
+  bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
+  startT(inicio);
+}
+
+function etapa02_tipo(){
+  t1.src=img("0401"); t2.src=img("0203"); t3.src=img("0301");
+  b1.onclick=etapa02_barato;
+  b3.onclick=etapa02_emporium;
+  startT(inicio);
+}
+
+function etapa02_emporium(){
+  t2.src=img("03");
+  b1.onclick=()=>showPdf("Prata",etapa02_tipo,etapa02_emporium);
+  b3.onclick=()=>showPdf("Ouro",etapa02_tipo,etapa02_emporium);
+}
+
+function etapa02_barato(){
+  t2.src=img("04");
+  b1.onclick=etapa02_tapeado;
+  b3.onclick=etapa02_tipo;
+}
+
+function etapa02_tapeado(){
+  t2.src=img("0208");
+  bot2.innerHTML="<div class='centerText'>FUI TAPEADO</div>";
+  b1.onclick=inicio;
+  b3.onclick=etapa02_alerta;
+  startT(inicio);
+}
+
+function etapa02_alerta(){
+  t2.src=img("0402");
+  b1.onclick=etapa02_lutar;
+  b3.onclick=inicio;
+  startT(inicio);
+}
+
+function etapa02_lutar(){
+  t2.src=img("0403");
+  b3.onclick=etapa02_final;
+  startT(etapa02_final);
+}
+
+function etapa02_final(){
+  t2.src=img("0207");
+  b3.onclick=inicio;
+  startT(inicio);
+}
+
+inicio();
 </script>
 </body>
 </html>
