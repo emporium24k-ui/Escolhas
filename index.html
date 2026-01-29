@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Landing Interativa</title>
 
 <style>
@@ -22,7 +22,6 @@
 }
 
 *{box-sizing:border-box}
-
 body{
   margin:0;
   background:var(--bg);
@@ -30,12 +29,9 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   padding:18px;
 }
+.wrap{max-width:1100px;margin:auto}
 
-.wrap{
-  max-width:1100px;
-  margin:auto;
-}
-
+/* GRID base (3 colunas) */
 .grid6{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -43,14 +39,28 @@ body{
     "top1 top2 top3"
     "bot1 bot2 bot3";
   gap:var(--gap);
+  align-items:start;
 }
 
-@media(max-width:900px){
-  .grid6{
+/* MODO 2 COLUNAS (sem o meio) */
+.grid6.twoCols{
+  grid-template-columns:repeat(2,1fr);
+  grid-template-areas:
+    "top1 top3"
+    "bot1 bot3";
+}
+
+@media (max-width:900px){
+  .grid6,
+  .grid6.twoCols{
     grid-template-columns:1fr;
     grid-template-areas:
-      "top1""top2""top3"
-      "bot1""bot2""bot3";
+      "top1"
+      "top2"
+      "top3"
+      "bot1"
+      "bot2"
+      "bot3";
   }
 }
 
@@ -60,6 +70,9 @@ body{
   background:rgba(255,255,255,.02);
   overflow:hidden;
 }
+
+/* some de verdade quando não precisa */
+.hidden{ display:none !important; }
 
 .mediaPanel{position:relative}
 .media img{width:100%;display:block}
@@ -80,7 +93,6 @@ body{
   text-align:center;
   cursor:pointer;
 }
-
 .choiceBtn:hover{filter:brightness(1.08)}
 .choiceBtn:active{transform:translateY(2px)}
 
@@ -89,8 +101,6 @@ body{
 
 .bigLabel{font-size:22px;font-weight:900}
 .centerText{text-align:center;font-size:20px;font-weight:900}
-
-.ghost{visibility:hidden;pointer-events:none}
 
 #top1{grid-area:top1}
 #top2{grid-area:top2}
@@ -108,12 +118,7 @@ body{
   overflow:hidden;
   min-height:70vh;
 }
-
-.pdfFull iframe{
-  width:100%;
-  height:70vh;
-  border:0;
-}
+.pdfFull iframe{width:100%;height:70vh;border:0}
 
 .pdfAction{
   position:absolute;
@@ -126,7 +131,6 @@ body{
   font-weight:950;
   cursor:pointer;
 }
-
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 </style>
@@ -134,34 +138,34 @@ body{
 
 <body>
 <div class="wrap">
-<div class="grid6">
+  <div class="grid6" id="grid">
 
-<div class="panel mediaPanel" id="top1">
-  <div class="media"><img id="top1img"></div>
-  <div class="choiceBtn" id="top1btn"></div>
-</div>
+    <div class="panel mediaPanel" id="top1">
+      <div class="media"><img id="top1img" alt=""></div>
+      <div class="choiceBtn" id="top1btn"></div>
+    </div>
 
-<div class="panel mediaPanel" id="top2">
-  <div class="media"><img id="top2img"></div>
-  <div class="choiceBtn" id="top2btn"></div>
-</div>
+    <div class="panel mediaPanel" id="top2">
+      <div class="media"><img id="top2img" alt=""></div>
+      <div class="choiceBtn" id="top2btn"></div>
+    </div>
 
-<div class="panel mediaPanel" id="top3">
-  <div class="media"><img id="top3img"></div>
-  <div class="choiceBtn" id="top3btn"></div>
-</div>
+    <div class="panel mediaPanel" id="top3">
+      <div class="media"><img id="top3img" alt=""></div>
+      <div class="choiceBtn" id="top3btn"></div>
+    </div>
 
-<div class="pdfFull ghost" id="pdfWrap">
-  <div class="pdfAction left" id="pdfBack">voltar</div>
-  <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
-  <iframe id="pdfFrame"></iframe>
-</div>
+    <div class="pdfFull hidden" id="pdfWrap">
+      <div class="pdfAction left" id="pdfBack">voltar</div>
+      <div class="pdfAction right" id="pdfWhats">chamar no whatsapp</div>
+      <iframe id="pdfFrame" title="PDF"></iframe>
+    </div>
 
-<div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
-<div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
-<div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
+    <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
+    <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
+    <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
 
-</div>
+  </div>
 </div>
 
 <script>
@@ -172,15 +176,28 @@ const TIMER=60000;
 const WHATS="https://wa.me/5541998518452";
 
 /* ELEMENTOS */
+const grid = document.getElementById("grid");
+
+const top1=document.getElementById("top1");
+const top2=document.getElementById("top2");
+const top3=document.getElementById("top3");
+
 const t1=document.getElementById("top1img");
 const t2=document.getElementById("top2img");
 const t3=document.getElementById("top3img");
+
 const b1=document.getElementById("top1btn");
 const b2=document.getElementById("top2btn");
 const b3=document.getElementById("top3btn");
+
 const bot1=document.getElementById("bot1p");
 const bot2=document.getElementById("bot2p");
 const bot3=document.getElementById("bot3p");
+
+const bot1Panel=document.getElementById("bot1");
+const bot2Panel=document.getElementById("bot2");
+const bot3Panel=document.getElementById("bot3");
+
 const pdfWrap=document.getElementById("pdfWrap");
 const pdfFrame=document.getElementById("pdfFrame");
 const pdfBack=document.getElementById("pdfBack");
@@ -189,162 +206,489 @@ const pdfWhats=document.getElementById("pdfWhats");
 let timer;
 
 /* HELPERS */
-function img(n){return n==="03"?IMG+"03.jpeg":IMG+n+".png"}
-function clearT(){if(timer)clearTimeout(timer)}
-function startT(fn){clearT();timer=setTimeout(fn,TIMER)}
+function img(name){ return name==="03" ? IMG+"03.jpeg" : IMG+name+".png"; }
+function clearT(){ if(timer) clearTimeout(timer); }
+function startT(fn){ clearT(); timer=setTimeout(fn, TIMER); }
 
-function hidePdf(){pdfWrap.classList.add("ghost")}
-function showPdf(name,back,timeout){
-  pdfWrap.classList.remove("ghost");
-  pdfFrame.src=PDF+name+".pdf";
-  pdfBack.onclick=()=>{hidePdf();back()};
-  pdfWhats.onclick=()=>window.location.href=WHATS;
-  startT(()=>{hidePdf();timeout()});
+/* controla visibilidade real */
+function showPanel(el){ el.classList.remove("hidden"); }
+function hidePanel(el){ el.classList.add("hidden"); }
+
+/* botão */
+function setBtn(btnEl, text, onClick){
+  btnEl.textContent = text || "";
+  btnEl.onclick = null;
+  if(!text){ btnEl.classList.add("hidden"); return; }
+  btnEl.classList.remove("hidden");
+  btnEl.onclick = onClick;
 }
 
-/* INICIO */
+/* imagem */
+function setImg(imgEl, src){
+  imgEl.src = src;
+  imgEl.style.display = "block";
+  imgEl.onerror = () => { imgEl.style.display="none"; };
+}
+
+/* modo 2 colunas no grid */
+function setTwoColsMode(on){
+  if(on) grid.classList.add("twoCols");
+  else grid.classList.remove("twoCols");
+}
+
+/* limpa tudo para montar etapa */
+function resetLayout(){
+  hidePanel(pdfWrap);
+  pdfFrame.removeAttribute("src");
+
+  // mostra os 3 por padrão (etapas vão esconder o que não usa)
+  showPanel(top1); showPanel(top2); showPanel(top3);
+  showPanel(bot1Panel); showPanel(bot2Panel); showPanel(bot3Panel);
+
+  // botões visíveis só se tiver texto
+  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
+
+  // textos
+  bot1.innerHTML=""; bot2.innerHTML=""; bot3.innerHTML="";
+
+  // imagens
+  t1.removeAttribute("src"); t2.removeAttribute("src"); t3.removeAttribute("src");
+  t1.style.display="block"; t2.style.display="block"; t3.style.display="block";
+
+  // padrão 3 colunas
+  setTwoColsMode(false);
+}
+
+/* PDF full */
+function showPdf(name, onBack, onTimeout){
+  // some com os cards de cima
+  hidePanel(top1); hidePanel(top2); hidePanel(top3);
+  // mostra pdf ocupando 3
+  showPanel(pdfWrap);
+  pdfFrame.src = PDF + name + ".pdf";
+
+  pdfBack.onclick = () => { hidePanel(pdfWrap); onBack(); };
+  pdfWhats.onclick = () => window.location.href = WHATS;
+
+  startT(() => { hidePanel(pdfWrap); onTimeout(); });
+}
+
+/* =========================
+   INICIO (2 colunas, sem meio)
+========================= */
 function inicio(){
-  hidePdf();
-  t1.src=img("01"); t3.src=img("02");
-  b1.textContent="continuar"; b3.textContent="continuar";
-  b1.onclick=etapa01_q1; b3.onclick=etapa02_q1;
-  bot1.innerHTML="<div class='bigLabel'>mulher</div>";
-  bot2.innerHTML="";
-  bot3.innerHTML="<div class='bigLabel'>homem</div>";
-  startT(()=>Math.random()<.5?etapa01_q1():etapa02_q1());
+  clearT();
+  resetLayout();
+
+  // some os slots do meio (top2 e bot2)
+  hidePanel(top2);
+  hidePanel(bot2Panel);
+
+  // ativa modo 2 colunas
+  setTwoColsMode(true);
+
+  // imagens só esquerda e direita
+  setImg(t1, img("01"));
+  setImg(t3, img("02"));
+
+  // botões só esquerda e direita
+  setBtn(b1, "continuar", () => etapa01_q1());
+  setBtn(b3, "continuar", () => etapa02_q1());
+
+  // textos só esquerda e direita
+  bot1.innerHTML = "<div class='bigLabel'>mulher</div>";
+  bot3.innerHTML = "<div class='bigLabel'>homem</div>";
+
+  startT(() => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
 }
 
 /* ======================
-   ETAPA 01 (MULHER)
+   ETAPA 01
 ====================== */
 function etapa01_q1(){
-  t2.src=img("0102");
-  b1.textContent="sim"; b3.textContent="não";
-  b1.onclick=etapa01_tipo; b3.onclick=etapa01_fimNao;
-  bot2.innerHTML="<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
-  startT(etapa01_fimNao);
+  clearT();
+  resetLayout();
+
+  // só o centro
+  hidePanel(top1); hidePanel(top3);
+  hidePanel(bot1Panel); hidePanel(bot3Panel);
+
+  setImg(t2, img("0102"));
+
+  // botões sim/não nos lados (top1/top3 estão hidden, então usamos top2 como centro e
+  // colocamos os botões no top1btn/top3btn? melhor manter botões nos lados VISÍVEIS:
+  // Vamos mostrar top1 e top3 apenas para botões (sem imagem)
+  showPanel(top1); showPanel(top3);
+  t1.style.display="none";
+  t3.style.display="none";
+
+  setBtn(b1, "sim", () => etapa01_tipo());
+  setBtn(b3, "não", () => etapa01_fimNao());
+
+  bot2Panel.classList.remove("hidden");
+  bot2.innerHTML = "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
+
+  startT(() => etapa01_fimNao());
 }
 
 function etapa01_fimNao(){
-  t2.src=img("0105");
-  b1.textContent=b3.textContent="";
-  bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
-  startT(inicio);
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(top3);
+  hidePanel(bot1Panel); hidePanel(bot3Panel);
+
+  setImg(t2, img("0105"));
+  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
+
+  bot2.innerHTML = "ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
+
+  startT(() => inicio());
 }
 
 function etapa01_tipo(){
-  t1.src=img("0401"); t2.src=img("0103"); t3.src=img("0301");
-  b1.textContent="continuar"; b3.textContent="continuar";
-  b1.onclick=etapa01_barato; b3.onclick=etapa01_emporium;
+  clearT();
+  resetLayout();
+
+  setImg(t1, img("0401"));
+  setImg(t2, img("0103"));
+  setImg(t3, img("0301"));
+
+  setBtn(b1, "continuar", () => etapa01_barato());
+  setBtn(b3, "continuar", () => etapa01_emporium());
+
   bot1.innerHTML="<div class='bigLabel'>Loja Baratesa</div>";
   bot2.innerHTML="<div class='centerText'>Qual tipo de joalheria você escolheria?</div>";
   bot3.innerHTML="<div class='bigLabel'>Emporium24k</div>";
-  startT(inicio);
+
+  startT(() => inicio());
 }
 
 function etapa01_emporium(){
-  t2.src=img("03");
-  b1.onclick=()=>showPdf("Prata",etapa01_tipo,etapa01_emporium);
-  b3.onclick=()=>showPdf("Ouro",etapa01_tipo,etapa01_emporium);
+  clearT();
+  resetLayout();
+
+  // centro 03.jpeg, laterais opções
+  setImg(t2, img("03"));
+
+  // laterais com imagem 0103
+  setImg(t1, img("0103"));
+  setImg(t3, img("0103"));
+
+  setBtn(b1, "continuar", () => etapa01_pdf_prata());
+  setBtn(b3, "continuar", () => etapa01_pdf_ouro());
+
+  bot1.innerHTML="<div class='bigLabel'>quero um par de anéis de namoro</div>";
+  bot2.innerHTML="<div class='centerText'>Olá como posso te ajudar?</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero um par de anéis de casamento</div>";
+
+  startT(() => etapa01_tipo());
+}
+
+function etapa01_pdf_prata(){
+  clearT();
+  resetLayout();
+
+  // textos abaixo como você pediu
+  bot1Panel.classList.remove("hidden");
+  bot3Panel.classList.remove("hidden");
+  bot2Panel.classList.add("hidden");
+
+  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+
+  // PDF full
+  showPdf("Prata", () => etapa01_tipo(), () => etapa01_emporium());
+}
+
+function etapa01_pdf_ouro(){
+  clearT();
+  resetLayout();
+
+  bot1Panel.classList.remove("hidden");
+  bot3Panel.classList.remove("hidden");
+  bot2Panel.classList.add("hidden");
+
+  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+
+  showPdf("Ouro", () => etapa01_tipo(), () => etapa01_emporium());
 }
 
 function etapa01_barato(){
-  t2.src=img("04");
-  b1.onclick=etapa01_tapeada;
-  b3.onclick=etapa01_tipo;
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("04"));
+  setImg(t1, img("0103"));
+  setImg(t3, img("0103"));
+
+  setBtn(b1, "continuar", () => etapa01_tapeada());
+  setBtn(b3, "continuar", () => etapa01_tipo());
+
+  bot1.innerHTML="<div class='bigLabel'>sim</div>";
+  bot2.innerHTML="<div class='centerText'>Eai procurando um par de alianças no precinho?</div>";
+  bot3.innerHTML="<div class='bigLabel'>não</div>";
+
+  startT(() => etapa01_tipo());
 }
 
 function etapa01_tapeada(){
-  t2.src=img("0108");
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("0108"));
+  setImg(t1, img("0105"));
+  setImg(t3, img("0106"));
+
+  setBtn(b1, "continuar", () => inicio());
+  setBtn(b3, "continuar", () => etapa01_alerta());
+
+  bot1.innerHTML="<div class='bigLabel'>Desistir</div>";
   bot2.innerHTML="<div class='centerText'>FUI TAPEADA</div>";
-  b1.onclick=inicio;
-  b3.onclick=etapa01_alerta;
-  startT(inicio);
+  bot3.innerHTML="<div class='bigLabel'>voltar na loja barateza</div>";
+
+  startT(() => inicio());
 }
 
 function etapa01_alerta(){
-  t2.src=img("0402");
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("0402"));
+  setImg(t1, img("0106"));
+  setImg(t3, img("0105"));
+
+  setBtn(b1, "continuar", () => etapa01_lutar());
+  setBtn(b3, "continuar", () => inicio());
+
+  bot1.innerHTML="<div class='bigLabel'>LUTAR</div>";
   bot2.innerHTML="<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>";
-  b1.onclick=etapa01_lutar;
-  b3.onclick=inicio;
-  startT(inicio);
+  bot3.innerHTML="<div class='bigLabel'>Desistir</div>";
+
+  startT(() => inicio());
 }
 
 function etapa01_lutar(){
-  t2.src=img("0403");
-  b3.onclick=etapa01_final;
-  startT(etapa01_final);
+  clearT();
+  resetLayout();
+
+  // só centro + botão direito
+  hidePanel(top1); hidePanel(bot1Panel);
+  hidePanel(top3); hidePanel(bot3Panel);
+  showPanel(top2); showPanel(bot2Panel);
+
+  setImg(t2, img("0403"));
+  setBtn(b2, "continuar", () => etapa01_final());
+
+  bot2.innerHTML="";
+  startT(() => etapa01_final());
 }
 
 function etapa01_final(){
-  t2.src=img("0107");
-  b3.onclick=inicio;
-  startT(inicio);
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(bot1Panel);
+  hidePanel(top3); hidePanel(bot3Panel);
+  showPanel(top2); showPanel(bot2Panel);
+
+  setImg(t2, img("0107"));
+  setBtn(b2, "continuar", () => inicio());
+
+  bot2.innerHTML="";
+  startT(() => inicio());
 }
 
 /* ======================
-   ETAPA 02 (HOMEM)
+   ETAPA 02 (ATUALIZADA)
 ====================== */
 function etapa02_q1(){
-  t2.src=img("0202");
-  b1.textContent="sim"; b3.textContent="não";
-  b1.onclick=etapa02_tipo; b3.onclick=etapa02_fimNao;
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(top3);
+  hidePanel(bot1Panel); hidePanel(bot3Panel);
+
+  setImg(t2, img("0202"));
+
+  showPanel(top1); showPanel(top3);
+  t1.style.display="none";
+  t3.style.display="none";
+
+  setBtn(b1, "sim", () => etapa02_tipo());
+  setBtn(b3, "não", () => etapa02_fimNao());
+
+  bot2Panel.classList.remove("hidden");
   bot2.innerHTML="<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>";
-  startT(etapa02_fimNao);
+
+  startT(() => etapa02_fimNao());
 }
 
 function etapa02_fimNao(){
-  t2.src=img("0205");
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(top3);
+  hidePanel(bot1Panel); hidePanel(bot3Panel);
+
+  setImg(t2, img("0205"));
+  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
+
   bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.";
-  startT(inicio);
+
+  startT(() => inicio());
 }
 
 function etapa02_tipo(){
-  t1.src=img("0401"); t2.src=img("0203"); t3.src=img("0301");
-  b1.onclick=etapa02_barato;
-  b3.onclick=etapa02_emporium;
-  startT(inicio);
+  clearT();
+  resetLayout();
+
+  setImg(t1, img("0401"));
+  setImg(t2, img("0203"));
+  setImg(t3, img("0301"));
+
+  setBtn(b1, "continuar", () => etapa02_barato());
+  setBtn(b3, "continuar", () => etapa02_emporium());
+
+  bot1.innerHTML="<div class='bigLabel'>Loja Baratesa</div>";
+  bot2.innerHTML="<div class='centerText'>Qual tipo de joalheria você escolheria?</div>";
+  bot3.innerHTML="<div class='bigLabel'>Emporium24k</div>";
+
+  startT(() => inicio());
 }
 
 function etapa02_emporium(){
-  t2.src=img("03");
-  b1.onclick=()=>showPdf("Prata",etapa02_tipo,etapa02_emporium);
-  b3.onclick=()=>showPdf("Ouro",etapa02_tipo,etapa02_emporium);
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("03"));
+  setImg(t1, img("0203"));
+  setImg(t3, img("0203"));
+
+  setBtn(b1, "continuar", () => etapa02_pdf_prata());
+  setBtn(b3, "continuar", () => etapa02_pdf_ouro());
+
+  bot1.innerHTML="<div class='bigLabel'>quero um par de anéis de namoro</div>";
+  bot2.innerHTML="<div class='centerText'>Olá como posso te ajudar?</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero um par de anéis de casamento</div>";
+
+  startT(() => etapa02_tipo());
+}
+
+function etapa02_pdf_prata(){
+  clearT();
+  resetLayout();
+
+  bot1Panel.classList.remove("hidden");
+  bot3Panel.classList.remove("hidden");
+  bot2Panel.classList.add("hidden");
+
+  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+
+  showPdf("Prata", () => etapa02_tipo(), () => etapa02_emporium());
+}
+
+function etapa02_pdf_ouro(){
+  clearT();
+  resetLayout();
+
+  bot1Panel.classList.remove("hidden");
+  bot3Panel.classList.remove("hidden");
+  bot2Panel.classList.add("hidden");
+
+  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
+  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+
+  showPdf("Ouro", () => etapa02_tipo(), () => etapa02_emporium());
 }
 
 function etapa02_barato(){
-  t2.src=img("04");
-  b1.onclick=etapa02_tapeado;
-  b3.onclick=etapa02_tipo;
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("04"));
+  setImg(t1, img("0203"));
+  setImg(t3, img("0203"));
+
+  setBtn(b1, "continuar", () => etapa02_tapeado());
+  setBtn(b3, "continuar", () => etapa02_tipo());
+
+  bot1.innerHTML="<div class='bigLabel'>sim</div>";
+  bot2.innerHTML="<div class='centerText'>Eai procurando um par de alianças no precinho?</div>";
+  bot3.innerHTML="<div class='bigLabel'>não</div>";
+
+  startT(() => etapa02_tipo());
 }
 
 function etapa02_tapeado(){
-  t2.src=img("0208");
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("0208"));
+  setImg(t1, img("0205"));
+  setImg(t3, img("0206"));
+
+  setBtn(b1, "continuar", () => inicio());
+  setBtn(b3, "continuar", () => etapa02_alerta());
+
+  bot1.innerHTML="<div class='bigLabel'>Desistir</div>";
   bot2.innerHTML="<div class='centerText'>FUI TAPEADO</div>";
-  b1.onclick=inicio;
-  b3.onclick=etapa02_alerta;
-  startT(inicio);
+  bot3.innerHTML="<div class='bigLabel'>voltar na loja barateza</div>";
+
+  startT(() => inicio());
 }
 
 function etapa02_alerta(){
-  t2.src=img("0402");
-  b1.onclick=etapa02_lutar;
-  b3.onclick=inicio;
-  startT(inicio);
+  clearT();
+  resetLayout();
+
+  setImg(t2, img("0402"));
+  setImg(t1, img("0206"));
+  setImg(t3, img("0205"));
+
+  setBtn(b1, "continuar", () => etapa02_lutar());
+  setBtn(b3, "continuar", () => inicio());
+
+  bot1.innerHTML="<div class='bigLabel'>LUTAR</div>";
+  bot2.innerHTML="<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>";
+  bot3.innerHTML="<div class='bigLabel'>Desistir</div>";
+
+  startT(() => inicio());
 }
 
 function etapa02_lutar(){
-  t2.src=img("0403");
-  b3.onclick=etapa02_final;
-  startT(etapa02_final);
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(bot1Panel);
+  hidePanel(top3); hidePanel(bot3Panel);
+  showPanel(top2); showPanel(bot2Panel);
+
+  setImg(t2, img("0403"));
+  setBtn(b2, "continuar", () => etapa02_final());
+
+  bot2.innerHTML="";
+  startT(() => etapa02_final());
 }
 
 function etapa02_final(){
-  t2.src=img("0207");
-  b3.onclick=inicio;
-  startT(inicio);
+  clearT();
+  resetLayout();
+
+  hidePanel(top1); hidePanel(bot1Panel);
+  hidePanel(top3); hidePanel(bot3Panel);
+  showPanel(top2); showPanel(bot2Panel);
+
+  setImg(t2, img("0207"));
+  setBtn(b2, "continuar", () => inicio());
+
+  bot2.innerHTML="";
+  startT(() => inicio());
 }
 
+/* START */
 inicio();
 </script>
 </body>
