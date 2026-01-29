@@ -53,30 +53,6 @@ body{
     "bot2";
 }
 
-/* ✅ MOBILE (padrão) */
-@media (max-width:900px){
-  body{padding:10px}
-
-  .grid, .grid.twoCols, .grid.centerOnly{
-    grid-template-columns:1fr;
-    grid-template-areas:
-      "top1"
-      "top2"
-      "top3"
-      "bot1"
-      "bot2"
-      "bot3";
-  }
-
-  /* ✅ MOBILE ESPECIAL: pergunta em cima, depois 2 opções */
-  .grid.mobileTwoChoices{
-    grid-template-areas:
-      "bot2"
-      "top1"
-      "top3";
-  }
-}
-
 .panel{
   border:1px solid var(--border);
   border-radius:var(--radius);
@@ -87,7 +63,7 @@ body{
 
 .mediaPanel{position:relative; min-height:220px;}
 
-/* ✅ PC: imagens maiores */
+/* ✅ DESKTOP: imagens maiores */
 .media{
   height:72vh;
   min-height:440px;
@@ -105,15 +81,16 @@ body{
   object-fit:contain;
 }
 
-/* captions: aparecem no mobile, somem no PC */
+/* captions: somem no PC por padrão */
 .caption{
   display:none;
-  padding:14px 14px 18px 14px;
+  padding:14px;
   border-top:1px solid rgba(255,255,255,.10);
-  font-size:18px; line-height:1.35;
+  font-size:18px;
+  line-height:1.35;
 }
 
-/* ✅ TOP BUTTON */
+/* ✅ BOTÃO (DESKTOP: absoluto dentro do card) */
 .choiceBtn{
   position:absolute;
   left:12px; right:12px; bottom:12px;
@@ -128,7 +105,7 @@ body{
   text-align:center;
   cursor:pointer;
   user-select:none;
-  z-index:5; /* ✅ acima da imagem */
+  z-index:5;
 }
 .choiceBtn:hover{filter:brightness(1.06)}
 .choiceBtn:active{transform:translateY(2px)}
@@ -204,23 +181,66 @@ body{
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 
-/* MOBILE */
+/* ✅ MOBILE (apenas aqui muda tudo do card; PC não é afetado) */
 @media (max-width:900px){
+  body{padding:10px}
+
+  .grid, .grid.twoCols, .grid.centerOnly{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "top1"
+      "top2"
+      "top3"
+      "bot1"
+      "bot2"
+      "bot3";
+  }
+
+  /* ✅ MOBILE ESPECIAL: pergunta em cima, depois 2 opções */
+  .grid.mobileTwoChoices{
+    grid-template-areas:
+      "bot2"
+      "top1"
+      "top3";
+  }
+
+  /* ✅ MOBILE: card vira coluna (imagem > texto > botão) */
+  .mediaPanel{
+    display:flex;
+    flex-direction:column;
+    min-height:auto;
+  }
+
   .media{
     height:auto;
-    min-height:320px;
+    min-height:260px;
     padding:10px;
   }
   .media img{
     width:100%;
     height:auto;
-    max-height:64vh;
+    max-height:58vh;
     object-fit:contain;
   }
 
-  .caption{display:block;} /* ✅ captions no mobile */
+  /* ✅ texto sempre visível */
+  .caption{
+    display:block;
+    padding:14px 14px 10px 14px;
+  }
+
+  /* ✅ botão NÃO é absoluto no mobile (nunca cobre texto) */
+  .choiceBtn{
+    position:static;
+    margin:12px;
+    left:auto; right:auto; bottom:auto;
+    width:auto;
+    border-radius:16px;
+  }
+
   .textPanel{padding:14px}
 
+  /* PDF */
   .pdfFull{min-height:78vh;}
   #pdfPages{height:78vh; padding:14px;}
   .pdfAction{padding:16px 16px;font-size:16px;border-radius:16px}
@@ -424,9 +444,10 @@ async function renderPdfToPages(pdfName){
   }
 }
 
-/* ✅ PDF SEM TIMER (sempre) */
+/* ✅ PDF SEM TIMER */
 function showPdf(pdfName, onBack){
   clearT();
+
   hide(top1); hide(top2); hide(top3);
   hide(bot1Panel); hide(bot2Panel); hide(bot3Panel);
 
@@ -600,7 +621,6 @@ function etapa01_tipo(){
   });
 }
 
-/* ✅ MOBILE CLARO: textos no card (caption) + some textos de baixo */
 function etapa01_emporium_q(){
   const mobile = isMobile();
 
@@ -617,8 +637,8 @@ function etapa01_emporium_q(){
       cap3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
 
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa01_pdf_prata,
+      topBtn3Label:"continuar",
       topBtn3Action: etapa01_pdf_ouro,
 
       onTimeout: etapa01_tipo
@@ -658,8 +678,8 @@ function etapa01_baratesa_q(){
       cap3:"<div class='bigLabel'>não</div>",
 
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa01_tapeada,
+      topBtn3Label:"continuar",
       topBtn3Action: etapa01_tipo,
 
       onTimeout: etapa01_tipo
@@ -697,8 +717,8 @@ function etapa01_tapeada(){
     bottom1:"<div class='bigLabel'>Desistir</div>",
     bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
     topBtn1Label:"continuar",
-    topBtn3Label:"continuar",
     topBtn1Action: inicio,
+    topBtn3Label:"continuar",
     topBtn3Action: etapa01_aviso,
     onTimeout: inicio
   });
@@ -714,8 +734,8 @@ function etapa01_aviso(){
     bottom1:"<div class='bigLabel'>LUTAR</div>",
     bottom3:"<div class='bigLabel'>Desistir</div>",
     topBtn1Label:"continuar",
-    topBtn3Label:"continuar",
     topBtn1Action: etapa01_luta1,
+    topBtn3Label:"continuar",
     topBtn3Action: inicio,
     onTimeout: inicio
   });
@@ -833,8 +853,8 @@ function etapa02_emporium_q(){
       cap3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
 
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa02_pdf_prata,
+      topBtn3Label:"continuar",
       topBtn3Action: etapa02_pdf_ouro,
 
       onTimeout: etapa02_tipo
@@ -874,8 +894,8 @@ function etapa02_baratesa_q(){
       cap3:"<div class='bigLabel'>não</div>",
 
       topBtn1Label:"continuar",
-      topBtn3Label:"continuar",
       topBtn1Action: etapa02_tapeado,
+      topBtn3Label:"continuar",
       topBtn3Action: etapa02_tipo,
 
       onTimeout: etapa02_tipo
@@ -913,8 +933,8 @@ function etapa02_tapeado(){
     bottom1:"<div class='bigLabel'>Desistir</div>",
     bottom3:"<div class='bigLabel'>voltar na loja barateza</div>",
     topBtn1Label:"continuar",
-    topBtn3Label:"continuar",
     topBtn1Action: inicio,
+    topBtn3Label:"continuar",
     topBtn3Action: etapa02_aviso,
     onTimeout: inicio
   });
@@ -930,8 +950,8 @@ function etapa02_aviso(){
     bottom1:"<div class='bigLabel'>LUTAR</div>",
     bottom3:"<div class='bigLabel'>Desistir</div>",
     topBtn1Label:"continuar",
-    topBtn3Label:"continuar",
     topBtn1Action: etapa02_luta1,
+    topBtn3Label:"continuar",
     topBtn3Action: inicio,
     onTimeout: inicio
   });
