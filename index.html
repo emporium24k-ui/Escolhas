@@ -68,6 +68,15 @@ body{
   height:auto;
 }
 
+/* ✅ legenda/caption dentro do card (usado no mobile) */
+.caption{
+  display:none; /* desktop não usa */
+  padding:14px 14px 70px 14px; /* espaço pro botão */
+  border-top:1px solid rgba(255,255,255,.10);
+  font-size:18px;
+  line-height:1.35;
+}
+
 /* card só de botão (sem imagem) */
 .btnOnly{
   display:flex;
@@ -77,6 +86,7 @@ body{
   min-height: 140px;
 }
 .btnOnly .media{display:none !important;}
+.btnOnly .caption{display:none !important;}
 .btnOnly .choiceBtn{
   position:static;
   margin:12px;
@@ -149,7 +159,12 @@ body{
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 
-/* MOBILE */
+/* =========================================================
+   ✅ MOBILE: deixa tudo claro (texto dentro do card)
+   - 1 coluna
+   - some com os 3 textos de baixo
+   - mostra caption dentro do card
+========================================================= */
 @media (max-width:900px){
   body{ padding:10px; }
   .wrap{ max-width: 100%; }
@@ -176,12 +191,16 @@ body{
     border-radius:16px;
   }
 
-  .textPanel{ padding:14px; }
-  .textPanel p{ font-size:18px; }
+  /* ✅ some os textos de baixo no mobile */
+  .textPanel{ display:none; }
+
+  /* ✅ mostra caption dentro do card */
+  .caption{ display:block; }
 
   .bigLabel{ font-size:22px; }
   .centerText{ font-size:20px; }
 
+  /* PDF ocupa mais tela */
   .pdfFull{ min-height: 78vh; }
   .pdfFull iframe{ height: 78vh; }
 
@@ -202,16 +221,19 @@ body{
 
     <div class="panel mediaPanel" id="top1">
       <div class="media"><img id="top1img" alt=""></div>
+      <div class="caption" id="cap1"></div>
       <div class="choiceBtn" id="top1btn"></div>
     </div>
 
     <div class="panel mediaPanel" id="top2">
       <div class="media"><img id="top2img" alt=""></div>
+      <div class="caption" id="cap2"></div>
       <div class="choiceBtn" id="top2btn"></div>
     </div>
 
     <div class="panel mediaPanel" id="top3">
       <div class="media"><img id="top3img" alt=""></div>
+      <div class="caption" id="cap3"></div>
       <div class="choiceBtn" id="top3btn"></div>
     </div>
 
@@ -221,6 +243,7 @@ body{
       <iframe id="pdfFrame" title="PDF"></iframe>
     </div>
 
+    <!-- desktop usa esses 3 textos -->
     <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
     <div class="panel textPanel" id="bot2"><p id="bot2p"></p></div>
     <div class="panel textPanel" id="bot3"><p id="bot3p"></p></div>
@@ -230,12 +253,8 @@ body{
 
 <script>
 const IMG="./";
-const PDF="./";
 const TIMER=60000;
 const WHATS="https://wa.me/5541998518452";
-
-/* caminho do PDF.js viewer */
-const PDFJS_VIEWER = "./pdfjs/web/viewer.html";
 
 const grid = document.getElementById("grid");
 
@@ -250,6 +269,10 @@ const t3=document.getElementById("top3img");
 const b1=document.getElementById("top1btn");
 const b2=document.getElementById("top2btn");
 const b3=document.getElementById("top3btn");
+
+const cap1=document.getElementById("cap1");
+const cap2=document.getElementById("cap2");
+const cap3=document.getElementById("cap3");
 
 const bot1=document.getElementById("bot1p");
 const bot2=document.getElementById("bot2p");
@@ -266,7 +289,9 @@ const pdfWhats=document.getElementById("pdfWhats");
 
 let timer;
 
+/* ✅ imagem 03 é jpeg */
 function img(name){ return name==="03" ? IMG+"03.jpeg" : IMG+name+".png"; }
+
 function clearT(){ if(timer) clearTimeout(timer); }
 function startT(fn){ clearT(); timer=setTimeout(fn, TIMER); }
 
@@ -298,6 +323,13 @@ function clearBtnOnly(){
   top2.classList.remove("btnOnly");
 }
 
+/* ✅ escreve o texto tanto no desktop (embaixo) quanto no mobile (caption dentro do card) */
+function setText(slot, html){
+  if(slot===1){ bot1.innerHTML = html||""; cap1.innerHTML = html||""; }
+  if(slot===2){ bot2.innerHTML = html||""; cap2.innerHTML = html||""; }
+  if(slot===3){ bot3.innerHTML = html||""; cap3.innerHTML = html||""; }
+}
+
 function resetLayout(){
   clearBtnOnly();
 
@@ -309,14 +341,17 @@ function resetLayout(){
 
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
-  bot1.innerHTML=""; bot2.innerHTML=""; bot3.innerHTML="";
+  setText(1,""); setText(2,""); setText(3,"");
 
   t1.removeAttribute("src"); t2.removeAttribute("src"); t3.removeAttribute("src");
   t1.style.display="block"; t2.style.display="block"; t3.style.display="block";
 
+  cap1.innerHTML=""; cap2.innerHTML=""; cap3.innerHTML="";
+
   setTwoColsMode(false);
 }
 
+/* centro + escolhas laterais */
 function centerWithSideChoices(centerImgName, leftText, leftFn, rightText, rightFn, centerBottomHtml, timeoutFn){
   clearT();
   resetLayout();
@@ -334,14 +369,46 @@ function centerWithSideChoices(centerImgName, leftText, leftFn, rightText, right
   hidePanel(bot1Panel);
   hidePanel(bot3Panel);
   showPanel(bot2Panel);
-  bot2.innerHTML = centerBottomHtml || "";
+
+  setText(2, centerBottomHtml || "");
 
   startT(timeoutFn);
 }
 
-/* ✅ PDF sem miniaturas: abre no PDF.js e já manda pagemode=none */
+/* =========================================================
+   ✅ PDF.JS autodetect (porque você subiu em outro nível)
+========================================================= */
+let PDFJS_VIEWER = null;
+
+/* tentei cobrir os caminhos mais comuns quando a galera sobe "torto" */
+const PDFJS_CANDIDATES = [
+  "./pdfjs/web/viewer.html",
+  "./pdfjs/viewer.html",
+  "./web/viewer.html",
+  "./viewer.html",
+  "./assets/pdfjs/web/viewer.html",
+  "./assets/web/viewer.html",
+  "./static/pdfjs/web/viewer.html"
+];
+
+async function resolvePdfViewer(){
+  for (const p of PDFJS_CANDIDATES){
+    try{
+      const r = await fetch(p, { method:"GET", cache:"no-store" });
+      if(r && r.ok){
+        PDFJS_VIEWER = p;
+        return;
+      }
+    }catch(e){}
+  }
+  PDFJS_VIEWER = null; // fallback
+}
+resolvePdfViewer();
+
+/* monta URL do viewer se existir */
 function pdfUrl(name){
   const filePath = "./" + name + ".pdf";
+  if(!PDFJS_VIEWER) return filePath; // fallback: abre direto (não quebra)
   return PDFJS_VIEWER + "?file=" + encodeURIComponent(filePath) + "#pagemode=none";
 }
 
@@ -349,7 +416,6 @@ function showPdf(name, onBack, onTimeout){
   hidePanel(top1); hidePanel(top2); hidePanel(top3);
   showPanel(pdfWrap);
 
-  /* 🔥 aqui está a mudança */
   pdfFrame.src = pdfUrl(name);
 
   pdfBack.onclick = () => { hidePanel(pdfWrap); onBack(); };
@@ -358,11 +424,14 @@ function showPdf(name, onBack, onTimeout){
   startT(() => { hidePanel(pdfWrap); onTimeout(); });
 }
 
-/* INICIO */
+/* =========================
+   INICIO
+========================= */
 function inicio(){
   clearT();
   resetLayout();
 
+  /* desktop: 2 colunas (esquerda e direita). mobile: vira 1 coluna e fica ok */
   hidePanel(top2);
   hidePanel(bot2Panel);
   setTwoColsMode(true);
@@ -373,13 +442,16 @@ function inicio(){
   setBtn(b1, "continuar", () => etapa01_q1());
   setBtn(b3, "continuar", () => etapa02_q1());
 
-  bot1.innerHTML="<div class='bigLabel'>mulher</div>";
-  bot3.innerHTML="<div class='bigLabel'>homem</div>";
+  /* ✅ textos agora aparecem no mobile dentro do card, e no desktop embaixo */
+  setText(1, "<div class='bigLabel'>mulher</div>");
+  setText(3, "<div class='bigLabel'>homem</div>");
 
   startT(() => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
 }
 
-/* ETAPA 01 */
+/* ======================
+   ETAPA 01
+====================== */
 function etapa01_q1(){
   centerWithSideChoices(
     "0102",
@@ -400,7 +472,7 @@ function etapa01_fimNao(){
   setImg(t2, img("0105"));
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
-  bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então";
+  setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
   startT(() => inicio());
 }
 
@@ -415,9 +487,9 @@ function etapa01_tipo(){
   setBtn(b1, "continuar", () => etapa01_barato());
   setBtn(b3, "continuar", () => etapa01_emporium());
 
-  bot1.innerHTML="<div class='bigLabel'>Loja Baratesa</div>";
-  bot2.innerHTML="<div class='centerText'>Qual tipo de joalheria você escolheria?</div>";
-  bot3.innerHTML="<div class='bigLabel'>Emporium24k</div>";
+  setText(1, "<div class='bigLabel'>Loja Baratesa</div>");
+  setText(2, "<div class='centerText'>Qual tipo de joalheria você escolheria?</div>");
+  setText(3, "<div class='bigLabel'>Emporium24k</div>");
 
   startT(() => inicio());
 }
@@ -433,9 +505,9 @@ function etapa01_emporium(){
   setBtn(b1, "continuar", () => etapa01_pdf_prata());
   setBtn(b3, "continuar", () => etapa01_pdf_ouro());
 
-  bot1.innerHTML="<div class='bigLabel'>quero um par de anéis de namoro</div>";
-  bot2.innerHTML="<div class='centerText'>Olá como posso te ajudar?</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero um par de anéis de casamento</div>";
+  setText(1, "<div class='bigLabel'>quero um par de anéis de namoro</div>");
+  setText(2, "<div class='centerText'>Olá como posso te ajudar?</div>");
+  setText(3, "<div class='bigLabel'>quero um par de anéis de casamento</div>");
 
   startT(() => etapa01_tipo());
 }
@@ -443,12 +515,11 @@ function etapa01_emporium(){
 function etapa01_pdf_prata(){
   clearT();
   resetLayout();
-
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
 
-  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+  setText(1, "<div class='bigLabel'>muito caro</div>");
+  setText(3, "<div class='bigLabel'>quero comprar</div>");
 
   showPdf("Prata", () => etapa01_tipo(), () => etapa01_emporium());
 }
@@ -456,12 +527,11 @@ function etapa01_pdf_prata(){
 function etapa01_pdf_ouro(){
   clearT();
   resetLayout();
-
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
 
-  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+  setText(1, "<div class='bigLabel'>muito caro</div>");
+  setText(3, "<div class='bigLabel'>quero comprar</div>");
 
   showPdf("Ouro", () => etapa01_tipo(), () => etapa01_emporium());
 }
@@ -477,9 +547,9 @@ function etapa01_barato(){
   setBtn(b1, "continuar", () => etapa01_tapeada());
   setBtn(b3, "continuar", () => etapa01_tipo());
 
-  bot1.innerHTML="<div class='bigLabel'>sim</div>";
-  bot2.innerHTML="<div class='centerText'>Eai procurando um par de alianças no precinho?</div>";
-  bot3.innerHTML="<div class='bigLabel'>não</div>";
+  setText(1, "<div class='bigLabel'>sim</div>");
+  setText(2, "<div class='centerText'>Eai procurando um par de alianças no precinho?</div>");
+  setText(3, "<div class='bigLabel'>não</div>");
 
   startT(() => etapa01_tipo());
 }
@@ -495,9 +565,9 @@ function etapa01_tapeada(){
   setBtn(b1, "continuar", () => inicio());
   setBtn(b3, "continuar", () => etapa01_alerta());
 
-  bot1.innerHTML="<div class='bigLabel'>Desistir</div>";
-  bot2.innerHTML="<div class='centerText'>FUI TAPEADA</div>";
-  bot3.innerHTML="<div class='bigLabel'>voltar na loja barateza</div>";
+  setText(1, "<div class='bigLabel'>Desistir</div>");
+  setText(2, "<div class='centerText'>FUI TAPEADA</div>");
+  setText(3, "<div class='bigLabel'>voltar na loja barateza</div>");
 
   startT(() => inicio());
 }
@@ -513,9 +583,9 @@ function etapa01_alerta(){
   setBtn(b1, "continuar", () => etapa01_lutar());
   setBtn(b3, "continuar", () => inicio());
 
-  bot1.innerHTML="<div class='bigLabel'>LUTAR</div>";
-  bot2.innerHTML="<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>";
-  bot3.innerHTML="<div class='bigLabel'>Desistir</div>";
+  setText(1, "<div class='bigLabel'>LUTAR</div>");
+  setText(2, "<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>");
+  setText(3, "<div class='bigLabel'>Desistir</div>");
 
   startT(() => inicio());
 }
@@ -531,7 +601,7 @@ function etapa01_lutar(){
   setImg(t2, img("0403"));
   setBtn(b2, "continuar", () => etapa01_final());
 
-  bot2.innerHTML="";
+  setText(2, "");
   startT(() => etapa01_final());
 }
 
@@ -546,11 +616,13 @@ function etapa01_final(){
   setImg(t2, img("0107"));
   setBtn(b2, "continuar", () => inicio());
 
-  bot2.innerHTML="";
+  setText(2, "");
   startT(() => inicio());
 }
 
-/* ETAPA 02 */
+/* ======================
+   ETAPA 02
+====================== */
 function etapa02_q1(){
   centerWithSideChoices(
     "0202",
@@ -571,7 +643,7 @@ function etapa02_fimNao(){
   setImg(t2, img("0205"));
   setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
 
-  bot2.innerHTML="ah que pena, desejo tudo de bom para o seu relacionamento então";
+  setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
   startT(() => inicio());
 }
 
@@ -586,9 +658,9 @@ function etapa02_tipo(){
   setBtn(b1, "continuar", () => etapa02_barato());
   setBtn(b3, "continuar", () => etapa02_emporium());
 
-  bot1.innerHTML="<div class='bigLabel'>Loja Baratesa</div>";
-  bot2.innerHTML="<div class='centerText'>Qual tipo de joalheria você escolheria?</div>";
-  bot3.innerHTML="<div class='bigLabel'>Emporium24k</div>";
+  setText(1, "<div class='bigLabel'>Loja Baratesa</div>");
+  setText(2, "<div class='centerText'>Qual tipo de joalheria você escolheria?</div>");
+  setText(3, "<div class='bigLabel'>Emporium24k</div>");
 
   startT(() => inicio());
 }
@@ -604,9 +676,9 @@ function etapa02_emporium(){
   setBtn(b1, "continuar", () => etapa02_pdf_prata());
   setBtn(b3, "continuar", () => etapa02_pdf_ouro());
 
-  bot1.innerHTML="<div class='bigLabel'>quero um par de anéis de namoro</div>";
-  bot2.innerHTML="<div class='centerText'>Olá como posso te ajudar?</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero um par de anéis de casamento</div>";
+  setText(1, "<div class='bigLabel'>quero um par de anéis de namoro</div>");
+  setText(2, "<div class='centerText'>Olá como posso te ajudar?</div>");
+  setText(3, "<div class='bigLabel'>quero um par de anéis de casamento</div>");
 
   startT(() => etapa02_tipo());
 }
@@ -614,12 +686,11 @@ function etapa02_emporium(){
 function etapa02_pdf_prata(){
   clearT();
   resetLayout();
-
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
 
-  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+  setText(1, "<div class='bigLabel'>muito caro</div>");
+  setText(3, "<div class='bigLabel'>quero comprar</div>");
 
   showPdf("Prata", () => etapa02_tipo(), () => etapa02_emporium());
 }
@@ -627,12 +698,11 @@ function etapa02_pdf_prata(){
 function etapa02_pdf_ouro(){
   clearT();
   resetLayout();
-
   hidePanel(bot2Panel);
   showPanel(bot1Panel); showPanel(bot3Panel);
 
-  bot1.innerHTML="<div class='bigLabel'>muito caro</div>";
-  bot3.innerHTML="<div class='bigLabel'>quero comprar</div>";
+  setText(1, "<div class='bigLabel'>muito caro</div>");
+  setText(3, "<div class='bigLabel'>quero comprar</div>");
 
   showPdf("Ouro", () => etapa02_tipo(), () => etapa02_emporium());
 }
@@ -648,9 +718,9 @@ function etapa02_barato(){
   setBtn(b1, "continuar", () => etapa02_tapeado());
   setBtn(b3, "continuar", () => etapa02_tipo());
 
-  bot1.innerHTML="<div class='bigLabel'>sim</div>";
-  bot2.innerHTML="<div class='centerText'>Eai procurando um par de alianças no precinho?</div>";
-  bot3.innerHTML="<div class='bigLabel'>não</div>";
+  setText(1, "<div class='bigLabel'>sim</div>");
+  setText(2, "<div class='centerText'>Eai procurando um par de alianças no precinho?</div>");
+  setText(3, "<div class='bigLabel'>não</div>");
 
   startT(() => etapa02_tipo());
 }
@@ -666,9 +736,9 @@ function etapa02_tapeado(){
   setBtn(b1, "continuar", () => inicio());
   setBtn(b3, "continuar", () => etapa02_alerta());
 
-  bot1.innerHTML="<div class='bigLabel'>Desistir</div>";
-  bot2.innerHTML="<div class='centerText'>FUI TAPEADO</div>";
-  bot3.innerHTML="<div class='bigLabel'>voltar na loja barateza</div>";
+  setText(1, "<div class='bigLabel'>Desistir</div>");
+  setText(2, "<div class='centerText'>FUI TAPEADO</div>");
+  setText(3, "<div class='bigLabel'>voltar na loja barateza</div>");
 
   startT(() => inicio());
 }
@@ -684,9 +754,9 @@ function etapa02_alerta(){
   setBtn(b1, "continuar", () => etapa02_lutar());
   setBtn(b3, "continuar", () => inicio());
 
-  bot1.innerHTML="<div class='bigLabel'>LUTAR</div>";
-  bot2.innerHTML="<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>";
-  bot3.innerHTML="<div class='bigLabel'>Desistir</div>";
+  setText(1, "<div class='bigLabel'>LUTAR</div>");
+  setText(2, "<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>");
+  setText(3, "<div class='bigLabel'>Desistir</div>");
 
   startT(() => inicio());
 }
@@ -702,7 +772,7 @@ function etapa02_lutar(){
   setImg(t2, img("0403"));
   setBtn(b2, "continuar", () => etapa02_final());
 
-  bot2.innerHTML="";
+  setText(2, "");
   startT(() => etapa02_final());
 }
 
@@ -717,10 +787,11 @@ function etapa02_final(){
   setImg(t2, img("0207"));
   setBtn(b2, "continuar", () => inicio());
 
-  bot2.innerHTML="";
+  setText(2, "");
   startT(() => inicio());
 }
 
+/* START */
 inicio();
 </script>
 </body>
