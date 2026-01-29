@@ -30,7 +30,6 @@
       gap: var(--gap);
     }
 
-    /* === GRID FIXO === */
     .grid6{
       display:grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -63,22 +62,11 @@
     }
 
     .mediaPanel{ position:relative; }
-    .media{
-      width:100%;
-      display:block;
-      background:#0a0a0a;
-    }
+    .media{ width:100%; display:block; background:#0a0a0a; }
 
     .media img{
       width:100%;
       height:auto;
-      display:block;
-      background:#0a0a0a;
-    }
-    .media iframe{
-      width:100%;
-      height:70vh;
-      border:0;
       display:block;
       background:#0a0a0a;
     }
@@ -117,7 +105,6 @@
       word-break: break-word;
     }
 
-    /* Invisível mas mantém posição */
     .ghost{
       visibility: hidden !important;
       pointer-events: none !important;
@@ -128,17 +115,8 @@
 
     .isHidden{ display:none !important; }
 
-    .bigLabel{
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .centerText{
-      text-align:center;
-      font-size:20px;
-      line-height:1.35;
-      font-weight:900;
-    }
+    .bigLabel{ font-size:22px; font-weight:900; letter-spacing:.2px; }
+    .centerText{ text-align:center; font-size:20px; line-height:1.35; font-weight:900; }
 
     #top1{ grid-area: top1; }
     #top2{ grid-area: top2; }
@@ -146,6 +124,52 @@
     #bot1{ grid-area: bot1; }
     #bot2{ grid-area: bot2; }
     #bot3{ grid-area: bot3; }
+
+    /* PDF FULL */
+    .pdfFull{
+      grid-area: top1 / top1 / top3 / top3;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: rgba(255,255,255,.02);
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      position: relative;
+      min-height: 70vh;
+    }
+    .pdfFull iframe{
+      width:100%;
+      height:70vh;
+      border:0;
+      display:block;
+      background:#0a0a0a;
+    }
+    .pdfFull.isHidden{ display:none !important; }
+
+    .pdfAction{
+      position:absolute;
+      top:12px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+      transition: background .15s ease, border-color .15s ease, transform .08s ease;
+      text-align:center;
+      font-weight:800;
+      letter-spacing:.2px;
+      z-index: 5;
+      min-width: 180px;
+    }
+    .pdfAction:hover{
+      background: rgba(0,0,0,.72);
+      border-color: rgba(255,255,255,.26);
+    }
+    .pdfAction:active{ transform: translateY(1px); }
+    .pdfAction.left{ left:12px; }
+    .pdfAction.right{ right:12px; }
   </style>
 </head>
 
@@ -154,27 +178,24 @@
     <div class="grid6">
 
       <div class="panel mediaPanel" id="top1">
-        <div class="media">
-          <img id="top1img" alt="" />
-          <iframe id="top1pdf" title="pdf1" class="isHidden"></iframe>
-        </div>
+        <div class="media"><img id="top1img" alt="" /></div>
         <div class="choiceBtn" id="top1btn" role="button" tabindex="0"></div>
       </div>
 
       <div class="panel mediaPanel" id="top2">
-        <div class="media">
-          <img id="top2img" alt="" />
-          <iframe id="top2pdf" title="pdf2" class="isHidden"></iframe>
-        </div>
+        <div class="media"><img id="top2img" alt="" /></div>
         <div class="choiceBtn" id="top2btn" role="button" tabindex="0"></div>
       </div>
 
       <div class="panel mediaPanel" id="top3">
-        <div class="media">
-          <img id="top3img" alt="" />
-          <iframe id="top3pdf" title="pdf3" class="isHidden"></iframe>
-        </div>
+        <div class="media"><img id="top3img" alt="" /></div>
         <div class="choiceBtn" id="top3btn" role="button" tabindex="0"></div>
+      </div>
+
+      <div class="pdfFull isHidden" id="pdfFullWrap">
+        <div class="pdfAction left" id="pdfBackBtn" role="button" tabindex="0">voltar</div>
+        <div class="pdfAction right" id="pdfWhatsBtn" role="button" tabindex="0">chamar no whatsapp</div>
+        <iframe id="pdfFullFrame" title="PDF"></iframe>
       </div>
 
       <div class="panel textPanel" id="bot1"><p id="bot1p"></p></div>
@@ -185,15 +206,12 @@
   </div>
 
 <script>
-  /* CONFIG */
-  const IMG_BASE = "./";         // imagens na raiz
+  const IMG_BASE = "./";
   const IMG_EXT  = ".png";
-  const PDF_BASE = "./";         // ✅ PDFs na raiz (Prata.pdf / Ouro.pdf)
-  const WHATSAPP_NUMBER = "5541998518452";
-  const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+  const PDF_BASE = "./";
+  const WHATSAPP_URL = "https://wa.me/5541998518452";
   const TIMER_SECONDS = 60;
 
-  /* ELEMENTOS */
   const top1 = document.getElementById("top1");
   const top2 = document.getElementById("top2");
   const top3 = document.getElementById("top3");
@@ -201,10 +219,6 @@
   const top1img = document.getElementById("top1img");
   const top2img = document.getElementById("top2img");
   const top3img = document.getElementById("top3img");
-
-  const top1pdf = document.getElementById("top1pdf");
-  const top2pdf = document.getElementById("top2pdf");
-  const top3pdf = document.getElementById("top3pdf");
 
   const top1btn = document.getElementById("top1btn");
   const top2btn = document.getElementById("top2btn");
@@ -218,7 +232,11 @@
   const bot2p = document.getElementById("bot2p");
   const bot3p = document.getElementById("bot3p");
 
-  /* TIMER */
+  const pdfFullWrap = document.getElementById("pdfFullWrap");
+  const pdfFullFrame = document.getElementById("pdfFullFrame");
+  const pdfBackBtn = document.getElementById("pdfBackBtn");
+  const pdfWhatsBtn = document.getElementById("pdfWhatsBtn");
+
   let timerHandle = null;
   let onTimeout = null;
 
@@ -232,7 +250,6 @@
     clearTimer();
     let remaining = seconds;
     onTimeout = timeoutFn;
-
     timerHandle = setInterval(() => {
       remaining -= 1;
       if (remaining <= 0){
@@ -242,14 +259,12 @@
     }, 1000);
   }
 
-  /* HELPERS */
   function setBtn(btnEl, label, fn){
     btnEl.textContent = label || "";
     btnEl.style.display = label ? "flex" : "none";
     btnEl.onclick = null;
     btnEl.onkeydown = null;
     if (!label) return;
-
     const act = () => { if (typeof fn === "function") fn(); };
     btnEl.onclick = act;
     btnEl.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") act(); };
@@ -265,51 +280,45 @@
     bot3p.innerHTML = showRight ? (htmlRight || "") : "";
   }
 
-  function clearTopMedia(which){
-    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
-    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
+  function setTopPresence(show1, show2, show3){
+    top1.classList.toggle("ghost", !show1);
+    top2.classList.toggle("ghost", !show2);
+    top3.classList.toggle("ghost", !show3);
+  }
 
-    imgEl.classList.add("isHidden");
-    pdfEl.classList.add("isHidden");
-    imgEl.removeAttribute("src");
-    pdfEl.removeAttribute("src");
+  function imagePathByName(name){
+    if (name === "03") return IMG_BASE + "03.jpeg";
+    return IMG_BASE + name + IMG_EXT;
   }
 
   function safeSetImg(imgEl, src){
-    imgEl.classList.remove("isHidden");
-    imgEl.onerror = () => {
-      imgEl.classList.add("isHidden");
-      imgEl.onerror = null;
-    };
+    imgEl.onerror = () => { imgEl.style.display = "none"; imgEl.onerror = null; };
+    imgEl.style.display = "block";
     imgEl.src = src;
   }
 
   function setTopImage(which, name){
     const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
-    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
-
-    pdfEl.classList.add("isHidden");
-    pdfEl.removeAttribute("src");
-
-    safeSetImg(imgEl, IMG_BASE + name + IMG_EXT);
+    safeSetImg(imgEl, imagePathByName(name));
   }
 
-  function setTopPDF(which, pdfName){
-    const imgEl = which === 1 ? top1img : which === 2 ? top2img : top3img;
-    const pdfEl = which === 1 ? top1pdf : which === 2 ? top2pdf : top3pdf;
-
-    imgEl.classList.add("isHidden");
-    imgEl.removeAttribute("src");
-
-    pdfEl.classList.remove("isHidden");
-    // ✅ abre PDF real, não cai em 404 se estiver na raiz com nome exato
-    pdfEl.src = PDF_BASE + pdfName + ".pdf";
+  function hidePdfFull(){
+    pdfFullWrap.classList.add("isHidden");
+    pdfFullFrame.removeAttribute("src");
   }
 
-  function setTopPresence(show1, show2, show3){
-    top1.classList.toggle("ghost", !show1);
-    top2.classList.toggle("ghost", !show2);
-    top3.classList.toggle("ghost", !show3);
+  function showPdfFull(pdfName, onBack, onTimeoutFn){
+    setTopPresence(false, false, false);
+    pdfFullWrap.classList.remove("isHidden");
+    pdfFullFrame.src = PDF_BASE + pdfName + ".pdf";
+
+    pdfBackBtn.onclick = () => { hidePdfFull(); onBack(); };
+    pdfBackBtn.onkeydown = (e) => { if (e.key==="Enter"||e.key===" ") { hidePdfFull(); onBack(); } };
+
+    pdfWhatsBtn.onclick = () => window.location.href = WHATSAPP_URL;
+    pdfWhatsBtn.onkeydown = (e) => { if (e.key==="Enter"||e.key===" ") window.location.href = WHATSAPP_URL; };
+
+    startTimer(TIMER_SECONDS, () => { hidePdfFull(); onTimeoutFn(); });
   }
 
   /* =========================
@@ -317,57 +326,39 @@
   ========================= */
   function inicio(){
     clearTimer();
+    hidePdfFull();
 
     setTopPresence(true, false, true);
     setTopImage(1, "01");
-    clearTopMedia(2);
     setTopImage(3, "02");
 
     setBtn(top1btn, "continuar", () => etapa01_q1());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02_q1());
 
-    setBottom(
-      `<div class="bigLabel">mulher</div>`,
-      ``,
-      `<div class="bigLabel">homem</div>`,
-      true, false, true
-    );
+    setBottom(`<div class="bigLabel">mulher</div>`, ``, `<div class="bigLabel">homem</div>`, true, false, true);
 
     startTimer(TIMER_SECONDS, () => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
   }
 
   /* =========================================================
-     LADO 01 (NÃO MISTURA COM LADO 02)
+     ETAPA 01 (mantida)
   ========================================================= */
-
-  // Etapa 01: pergunta "comprar anel?"
   function etapa01_q1(){
-    clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0102");
-    clearTopMedia(3);
 
     setBtn(top1btn, "sim", () => etapa01_tipoJoalheria());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "não", () => etapa01_fimNao());
 
-    setBottom(
-      ``,
-      `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`,
-      ``,
-      false, true, false
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa01_fimNao()); // default não
+    setBottom(``, `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`, ``, false, true, false);
+    startTimer(TIMER_SECONDS, () => etapa01_fimNao());
   }
 
-  // Etapa 01 parte 2 botão "não"
   function etapa01_fimNao(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(false, true, false);
     setTopImage(2, "0105");
 
@@ -375,240 +366,146 @@
     setBtn(top2btn, "", null);
     setBtn(top3btn, "", null);
 
-    setBottom(
-      ``,
-      `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`,
-      ``,
-      false, true, false
-    );
-
+    setBottom(``, `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`, ``, false, true, false);
     startTimer(TIMER_SECONDS, () => inicio());
   }
 
-  // Etapa 01 parte 2 botão "sim"
   function etapa01_tipoJoalheria(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
-    setTopImage(1, "0401");  // Loja Baratesa (imagem)
-    setTopImage(2, "0103");  // centro
-    setTopImage(3, "0301");  // Emporium24k (imagem)
+
+    setTopImage(1, "0401");
+    setTopImage(2, "0103");
+    setTopImage(3, "0301");
 
     setBtn(top1btn, "continuar", () => etapa01_baratesa_q1());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa01_emporium_q1());
 
-    setBottom(
-      `<div class="bigLabel">Loja Baratesa</div>`,
-      `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`,
-      `<div class="bigLabel">Emporium24k</div>`,
-      true, true, true
-    );
-
-    startTimer(TIMER_SECONDS, () => inicio()); // se não escolher, reinicia tudo
+    setBottom(`<div class="bigLabel">Loja Baratesa</div>`, `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`, `<div class="bigLabel">Emporium24k</div>`, true, true, true);
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
-  // Etapa 01 parte 3 Emporium24k
   function etapa01_emporium_q1(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0103");
     setTopImage(2, "03");
     setTopImage(3, "0103");
 
-    setBtn(top1btn, "continuar", () => etapa01_emporium_pdf_prata());
+    setBtn(top1btn, "continuar", () => etapa01_pdf_prata());
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_emporium_pdf_ouro());
+    setBtn(top3btn, "continuar", () => etapa01_pdf_ouro());
 
-    setBottom(
-      `<div class="bigLabel">quero um par de anéis de namoro</div>`,
-      `<div class="centerText">Olá como posso te ajudar?</div>`,
-      `<div class="bigLabel">quero um par de anéis de casamento</div>`,
-      true, true, true
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa01_tipoJoalheria()); // volta pro "sim"
+    setBottom(`<div class="bigLabel">quero um par de anéis de namoro</div>`, `<div class="centerText">Olá como posso te ajudar?</div>`, `<div class="bigLabel">quero um par de anéis de casamento</div>`, true, true, true);
+    startTimer(TIMER_SECONDS, () => etapa01_tipoJoalheria());
   }
 
-  // Etapa 01 parte 3 Loja Baratesa
   function etapa01_baratesa_q1(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0103");
     setTopImage(2, "04");
     setTopImage(3, "0103");
 
     setBtn(top1btn, "continuar", () => etapa01_baratesa_tapeada());
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa01_tipoJoalheria()); // "não" volta para o sim (como você definiu)
+    setBtn(top3btn, "continuar", () => etapa01_tipoJoalheria());
 
-    setBottom(
-      `<div class="bigLabel">sim</div>`,
-      `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`,
-      `<div class="bigLabel">não</div>`,
-      true, true, true
-    );
-
+    setBottom(`<div class="bigLabel">sim</div>`, `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`, `<div class="bigLabel">não</div>`, true, true, true);
     startTimer(TIMER_SECONDS, () => etapa01_tipoJoalheria());
   }
 
-  // Etapa 01 parte 4 namoro Emporium24k
-  function etapa01_emporium_pdf_prata(){
+  function etapa01_pdf_prata(){
     clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
-    setTopPDF(2, "Prata"); // ✅ Prata.pdf na raiz
-    clearTopMedia(3);
-
-    setBtn(top1btn, "voltar", () => etapa01_tipoJoalheria());  // ✅ volta só no lado 01
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
-
-    setBottom(
-      `<div class="bigLabel">muito caro</div>`,
-      ``,
-      `<div class="bigLabel">quero comprar</div>`,
-      true, false, true
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa01_emporium_q1());
+    showPdfFull("Prata", () => etapa01_tipoJoalheria(), () => etapa01_emporium_q1());
+    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
   }
 
-  // Etapa 01 parte 4 casamento Emporium24k
-  function etapa01_emporium_pdf_ouro(){
+  function etapa01_pdf_ouro(){
     clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
-    setTopPDF(2, "Ouro"); // ✅ Ouro.pdf na raiz
-    clearTopMedia(3);
-
-    setBtn(top1btn, "voltar", () => etapa01_tipoJoalheria());  // ✅ volta só no lado 01
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
-
-    setBottom(
-      `<div class="bigLabel">muito caro</div>`,
-      ``,
-      `<div class="bigLabel">quero comprar</div>`,
-      true, false, true
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa01_emporium_q1());
+    showPdfFull("Ouro", () => etapa01_tipoJoalheria(), () => etapa01_emporium_q1());
+    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
   }
 
-  // Etapa 01 parte 4 botão "sim" Loja Baratesa
   function etapa01_baratesa_tapeada(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
-    setTopImage(1, "0105"); // desistir
-    setTopImage(2, "0108"); // fui tapeada
-    setTopImage(3, "0106"); // voltar barateza
 
-    setBtn(top1btn, "continuar", () => inicio()); // desistir
+    setTopImage(1, "0105");
+    setTopImage(2, "0108");
+    setTopImage(3, "0106");
+
+    setBtn(top1btn, "continuar", () => inicio());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa01_baratesa_alerta());
 
-    setBottom(
-      `<div class="bigLabel">Desistir</div>`,
-      `<div class="centerText">FUI TAPEADA</div>`,
-      `<div class="bigLabel">voltar na loja barateza</div>`,
-      true, true, true
-    );
-
-    startTimer(TIMER_SECONDS, () => inicio()); // default desistir
+    setBottom(`<div class="bigLabel">Desistir</div>`, `<div class="centerText">FUI TAPEADA</div>`, `<div class="bigLabel">voltar na loja barateza</div>`, true, true, true);
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
-  // Etapa 01 parte 5 voltar na loja barateza (alerta)
   function etapa01_baratesa_alerta(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
-    setTopImage(1, "0106"); // lutar
+
+    setTopImage(1, "0106");
     setTopImage(2, "0402");
-    setTopImage(3, "0105"); // desistir
+    setTopImage(3, "0105");
 
     setBtn(top1btn, "continuar", () => etapa01_baratesa_lutar());
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => inicio()); // desistir
+    setBtn(top3btn, "continuar", () => inicio());
 
-    setBottom(
-      `<div class="bigLabel">LUTAR</div>`,
-      `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`,
-      `<div class="bigLabel">Desistir</div>`,
-      true, true, true
-    );
-
-    startTimer(TIMER_SECONDS, () => inicio()); // default desistir
+    setBottom(`<div class="bigLabel">LUTAR</div>`, `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`, `<div class="bigLabel">Desistir</div>`, true, true, true);
+    startTimer(TIMER_SECONDS, () => inicio());
   }
 
-  // Etapa 01 parte 6 LUTAR
   function etapa01_baratesa_lutar(){
-    clearTimer();
-
-    setTopPresence(false, true, true);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0403");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa01_baratesa_final());
 
     setBottom(``, ``, ``, false, false, false);
-
     startTimer(TIMER_SECONDS, () => etapa01_baratesa_final());
   }
 
-  // Etapa 01 parte 7 continuar (0107 e volta pro início)
   function etapa01_baratesa_final(){
-    clearTimer();
-
-    setTopPresence(false, true, true);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0107");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => inicio());
 
     setBottom(``, ``, ``, false, false, false);
-
     startTimer(TIMER_SECONDS, () => inicio());
   }
 
   /* =========================================================
-     LADO 02 (NÃO MISTURA COM LADO 01)
+     ETAPA 02 (ATUALIZADA conforme sua nova regra)
   ========================================================= */
-
   function etapa02_q1(){
-    clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0202");
-    clearTopMedia(3);
 
     setBtn(top1btn, "sim", () => etapa02_tipoJoalheria());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "não", () => etapa02_fimNao());
 
-    setBottom(
-      ``,
-      `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`,
-      ``,
-      false, true, false
-    );
-
+    setBottom(``, `<div class="centerText">Você vai aprofundar seu relacionamento comprando um anel?</div>`, ``, false, true, false);
     startTimer(TIMER_SECONDS, () => etapa02_fimNao());
   }
 
   function etapa02_fimNao(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(false, true, false);
     setTopImage(2, "0205");
 
@@ -616,20 +513,15 @@
     setBtn(top2btn, "", null);
     setBtn(top3btn, "", null);
 
-    setBottom(
-      ``,
-      `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`,
-      ``,
-      false, true, false
-    );
-
+    setBottom(``, `ah que pena, desejo tudo de bom para o seu relacionamento então, não haverá mais escolhas nessa etapa e caso o timer acabe volta para o inicio de tudo.`, ``, false, true, false);
     startTimer(TIMER_SECONDS, () => inicio());
   }
 
+  // Etapa 02 parte 2 botão "sim"
   function etapa02_tipoJoalheria(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0401");
     setTopImage(2, "0203");
     setTopImage(3, "0301");
@@ -638,130 +530,87 @@
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02_emporium_q1());
 
-    setBottom(
-      `<div class="bigLabel">Loja Baratesa</div>`,
-      `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`,
-      `<div class="bigLabel">Emporium24k</div>`,
-      true, true, true
-    );
-
+    setBottom(`<div class="bigLabel">Loja Baratesa</div>`, `<div class="centerText">Qual tipo de joalheria você escolheria?</div>`, `<div class="bigLabel">Emporium24k</div>`, true, true, true);
     startTimer(TIMER_SECONDS, () => inicio());
   }
 
+  // Etapa 02 parte 3 botão Emporium24k
   function etapa02_emporium_q1(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0203");
     setTopImage(2, "03");
     setTopImage(3, "0203");
 
-    setBtn(top1btn, "continuar", () => etapa02_emporium_pdf_prata());
+    setBtn(top1btn, "continuar", () => etapa02_pdf_prata());
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_emporium_pdf_ouro());
+    setBtn(top3btn, "continuar", () => etapa02_pdf_ouro());
 
-    setBottom(
-      `<div class="bigLabel">quero um par de anéis de namoro</div>`,
-      `<div class="centerText">Olá como posso te ajudar?</div>`,
-      `<div class="bigLabel">quero um par de anéis de casamento</div>`,
-      true, true, true
-    );
+    setBottom(`<div class="bigLabel">quero um par de anéis de namoro</div>`, `<div class="centerText">Olá como posso te ajudar?</div>`, `<div class="bigLabel">quero um par de anéis de casamento</div>`, true, true, true);
 
+    // ✅ agora volta para Etapa 02 parte 2 "sim"
     startTimer(TIMER_SECONDS, () => etapa02_tipoJoalheria());
   }
 
+  // Etapa 02 parte 3 botão Loja Baratesa
   function etapa02_baratesa_q1(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0203");
     setTopImage(2, "04");
     setTopImage(3, "0203");
 
-    setBtn(top1btn, "continuar", () => etapa02_baratesa_tapeada());
+    setBtn(top1btn, "continuar", () => etapa02_baratesa_tapeado());
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02_tipoJoalheria()); // "não" volta pro sim
 
-    setBottom(
-      `<div class="bigLabel">sim</div>`,
-      `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`,
-      `<div class="bigLabel">não</div>`,
-      true, true, true
-    );
+    setBottom(`<div class="bigLabel">sim</div>`, `<div class="centerText">Eai procurando um par de alianças no precinho?</div>`, `<div class="bigLabel">não</div>`, true, true, true);
 
+    // ✅ agora volta para Etapa 02 parte 2 "sim"
     startTimer(TIMER_SECONDS, () => etapa02_tipoJoalheria());
   }
 
-  function etapa02_emporium_pdf_prata(){
+  // Etapa 02 parte 4 namoro Emporium24k
+  function etapa02_pdf_prata(){
     clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
-    setTopPDF(2, "Prata");
-    clearTopMedia(3);
-
-    setBtn(top1btn, "voltar", () => etapa02_tipoJoalheria()); // ✅ volta só no lado 02
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
-
-    setBottom(
-      `<div class="bigLabel">muito caro</div>`,
-      ``,
-      `<div class="bigLabel">quero comprar</div>`,
-      true, false, true
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa02_emporium_q1());
+    // ✅ voltar = Etapa 02 parte 2 "sim"
+    // ✅ timeout = volta para Etapa 02 parte 3 Emporium
+    showPdfFull("Prata", () => etapa02_tipoJoalheria(), () => etapa02_emporium_q1());
+    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
   }
 
-  function etapa02_emporium_pdf_ouro(){
+  // Etapa 02 parte 4 casamento Emporium24k
+  function etapa02_pdf_ouro(){
     clearTimer();
-
-    setTopPresence(true, true, true);
-    clearTopMedia(1);
-    setTopPDF(2, "Ouro");
-    clearTopMedia(3);
-
-    setBtn(top1btn, "voltar", () => etapa02_tipoJoalheria()); // ✅ volta só no lado 02
-    setBtn(top2btn, "", null);
-    setBtn(top3btn, "chamar no whatsapp", () => window.location.href = WHATSAPP_URL);
-
-    setBottom(
-      `<div class="bigLabel">muito caro</div>`,
-      ``,
-      `<div class="bigLabel">quero comprar</div>`,
-      true, false, true
-    );
-
-    startTimer(TIMER_SECONDS, () => etapa02_emporium_q1());
+    showPdfFull("Ouro", () => etapa02_tipoJoalheria(), () => etapa02_emporium_q1());
+    setBottom(`<div class="bigLabel">muito caro</div>`, ``, `<div class="bigLabel">quero comprar</div>`, true, false, true);
   }
 
-  function etapa02_baratesa_tapeada(){
-    clearTimer();
-
+  // Etapa 02 parte 4 botão "sim" Loja Baratesa (tapeado)
+  function etapa02_baratesa_tapeado(){
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0205");
     setTopImage(2, "0208");
     setTopImage(3, "0206");
 
-    setBtn(top1btn, "continuar", () => inicio()); // desistir
+    setBtn(top1btn, "continuar", () => inicio());               // desistir
     setBtn(top2btn, "", null);
-    setBtn(top3btn, "continuar", () => etapa02_baratesa_alerta());
+    setBtn(top3btn, "continuar", () => etapa02_baratesa_alerta()); // voltar na barateza
 
-    setBottom(
-      `<div class="bigLabel">Desistir</div>`,
-      `<div class="centerText">FUI TAPEADA</div>`,
-      `<div class="bigLabel">voltar na loja barateza</div>`,
-      true, true, true
-    );
+    setBottom(`<div class="bigLabel">Desistir</div>`, `<div class="centerText">FUI TAPEADO</div>`, `<div class="bigLabel">voltar na loja barateza</div>`, true, true, true);
 
-    startTimer(TIMER_SECONDS, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
+  // Etapa 02 parte 5 voltar na loja barateza
   function etapa02_baratesa_alerta(){
-    clearTimer();
-
+    clearTimer(); hidePdfFull();
     setTopPresence(true, true, true);
+
     setTopImage(1, "0206"); // lutar
     setTopImage(2, "0402");
     setTopImage(3, "0205"); // desistir
@@ -770,49 +619,39 @@
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => inicio());
 
-    setBottom(
-      `<div class="bigLabel">LUTAR</div>`,
-      `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`,
-      `<div class="bigLabel">Desistir</div>`,
-      true, true, true
-    );
+    setBottom(`<div class="bigLabel">LUTAR</div>`, `<div class="centerText">VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>`, `<div class="bigLabel">Desistir</div>`, true, true, true);
 
-    startTimer(TIMER_SECONDS, () => inicio());
+    startTimer(TIMER_SECONDS, () => inicio()); // timeout = desistir
   }
 
+  // Etapa 02 parte 6 LUTAR
   function etapa02_baratesa_lutar(){
-    clearTimer();
-
-    setTopPresence(false, true, true);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0403");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => etapa02_baratesa_final());
 
     setBottom(``, ``, ``, false, false, false);
-
     startTimer(TIMER_SECONDS, () => etapa02_baratesa_final());
   }
 
+  // Etapa 02 parte 7 continuar (0207 e volta pro início)
   function etapa02_baratesa_final(){
-    clearTimer();
-
-    setTopPresence(false, true, true);
+    clearTimer(); hidePdfFull();
+    setTopPresence(false, true, false);
     setTopImage(2, "0207");
-    clearTopMedia(3);
 
     setBtn(top1btn, "", null);
     setBtn(top2btn, "", null);
     setBtn(top3btn, "continuar", () => inicio());
 
     setBottom(``, ``, ``, false, false, false);
-
     startTimer(TIMER_SECONDS, () => inicio());
   }
 
-  /* START */
   inicio();
 </script>
 </body>
