@@ -10,15 +10,16 @@
   --bg:#000;
   --text:#f4f4f6;
   --border:rgba(255,255,255,.14);
+  --panel:rgba(255,255,255,.03);
   --radius:18px;
   --gap:12px;
 
-  /* DOURADO ESCURO (chamativo) */
-  --gold:#b88a1b;
-  --gold2:#e2b84a;
+  /* dourado escuro chamativo */
+  --gold1:#e2b84a;
+  --gold2:#b88a1b;
   --goldBorder:#f2d37a;
   --goldText:#0b0b0d;
-  --goldGlow: rgba(184,138,27,.45);
+  --glow: rgba(184,138,27,.45);
 }
 
 *{box-sizing:border-box}
@@ -27,11 +28,10 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  padding:18px;
+  padding:14px;
 }
-.wrap{max-width:1100px;margin:auto}
-
-.grid6{
+.wrap{max-width:1180px;margin:0 auto}
+.grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   grid-template-areas:
@@ -40,78 +40,65 @@ body{
   gap:var(--gap);
   align-items:start;
 }
-
-/* modo 2 colunas (sem meio) */
-.grid6.twoCols{
+.grid.twoCols{
   grid-template-columns:repeat(2,1fr);
   grid-template-areas:
     "top1 top3"
     "bot1 bot3";
 }
+.grid.centerOnly{
+  grid-template-columns:1fr;
+  grid-template-areas:
+    "top2"
+    "bot2";
+}
 
 .panel{
   border:1px solid var(--border);
   border-radius:var(--radius);
-  background:rgba(255,255,255,.02);
+  background:var(--panel);
   overflow:hidden;
 }
 
-.hidden{display:none !important;}
+.hidden{display:none!important;}
 
-.mediaPanel{position:relative; min-height:140px;}
-.media{min-height:140px;}
-.media img{width:100%;height:auto;display:block;}
+.mediaPanel{position:relative; min-height:220px;}
+.media{min-height:220px;}
+.media img{width:100%;height:auto;display:block}
 
 .caption{
-  display:none; /* desktop não usa */
-  padding:14px 14px 70px 14px; /* espaço pro botão */
+  display:none; /* desktop: texto embaixo */
+  padding:14px 14px 78px 14px; /* espaço pro botão */
   border-top:1px solid rgba(255,255,255,.10);
-  font-size:18px;
-  line-height:1.35;
-}
-
-/* card sem imagem, só botão */
-.btnOnly{
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  padding:0;
-  min-height:140px;
-}
-.btnOnly .media{display:none !important;}
-.btnOnly .caption{display:none !important;}
-.btnOnly .choiceBtn{
-  position:static;
-  margin:12px;
-  width:calc(100% - 24px);
+  font-size:18px; line-height:1.35;
 }
 
 .choiceBtn{
   position:absolute;
-  left:12px;right:12px;bottom:12px;
+  left:12px; right:12px; bottom:12px;
   padding:14px;
   border-radius:14px;
-  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  background:linear-gradient(180deg,var(--gold1),var(--gold2));
   color:var(--goldText);
   border:1px solid var(--goldBorder);
-  box-shadow:
-    0 12px 30px rgba(0,0,0,.6),
-    0 0 30px var(--goldGlow);
+  box-shadow:0 10px 28px rgba(0,0,0,.65), 0 0 28px var(--glow);
   font-weight:950;
   text-transform:uppercase;
   text-align:center;
   cursor:pointer;
   user-select:none;
 }
-.choiceBtn:hover{filter:brightness(1.08)}
+.choiceBtn:hover{filter:brightness(1.06)}
 .choiceBtn:active{transform:translateY(2px)}
 
 .textPanel{padding:16px}
-.textPanel p{margin:0;font-size:18px; line-height:1.35}
+.textPanel p{margin:0;font-size:18px;line-height:1.35}
 
 .bigLabel{font-size:22px;font-weight:900}
 .centerText{text-align:center;font-size:20px;font-weight:900}
+.smallHint{opacity:.85;font-size:16px}
 
+/* IDs de grid */
 #top1{grid-area:top1}
 #top2{grid-area:top2}
 #top3{grid-area:top3}
@@ -119,7 +106,7 @@ body{
 #bot2{grid-area:bot2}
 #bot3{grid-area:bot3}
 
-/* PDF ocupa os 3 espaços de cima */
+/* PDF ocupa topo todo */
 .pdfFull{
   grid-area:top1 / top1 / top3 / top3;
   border:1px solid var(--border);
@@ -127,6 +114,7 @@ body{
   position:relative;
   overflow:hidden;
   min-height:70vh;
+  background:#000;
 }
 .pdfFull iframe{
   width:100%;
@@ -134,13 +122,12 @@ body{
   border:0;
   background:#000;
 }
-
 .pdfAction{
   position:absolute;
   top:14px;
   padding:14px 18px;
   border-radius:14px;
-  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  background:linear-gradient(180deg,var(--gold1),var(--gold2));
   color:var(--goldText);
   border:1px solid var(--goldBorder);
   font-weight:950;
@@ -151,18 +138,10 @@ body{
 .pdfAction.left{left:14px}
 .pdfAction.right{right:14px}
 
-/* =========================
-   MOBILE: fica claro
-   - 1 coluna
-   - some os textos de baixo
-   - mostra texto dentro do card
-========================= */
+/* MOBILE: 1 coluna, texto vai dentro do card */
 @media (max-width:900px){
-  body{padding:10px;}
-  .wrap{max-width:100%;}
-
-  .grid6,
-  .grid6.twoCols{
+  body{padding:10px}
+  .grid, .grid.twoCols, .grid.centerOnly{
     grid-template-columns:1fr;
     grid-template-areas:
       "top1"
@@ -172,37 +151,23 @@ body{
       "bot2"
       "bot3";
   }
-
-  .panel{border-radius:16px;}
-  .mediaPanel{min-height:240px;}
-  .media{min-height:240px;}
-
-  .choiceBtn{
-    padding:18px;
-    font-size:18px;
-    border-radius:16px;
-  }
-
+  .mediaPanel{min-height:260px;}
+  .media{min-height:260px;}
   .textPanel{display:none;}
   .caption{display:block;}
-
+  .choiceBtn{padding:18px;font-size:18px;border-radius:16px}
   .pdfFull{min-height:78vh;}
   .pdfFull iframe{height:78vh;}
-
-  .pdfAction{
-    padding:16px 16px;
-    font-size:16px;
-    border-radius:16px;
-  }
-  .pdfAction.left{left:10px;}
-  .pdfAction.right{right:10px;}
+  .pdfAction{padding:16px 16px;font-size:16px;border-radius:16px}
+  .pdfAction.left{left:10px}
+  .pdfAction.right{right:10px}
 }
 </style>
 </head>
 
 <body>
 <div class="wrap">
-  <div class="grid6" id="grid">
+  <div class="grid" id="grid">
 
     <div class="panel mediaPanel" id="top1">
       <div class="media"><img id="top1img" alt=""></div>
@@ -236,81 +201,95 @@ body{
 </div>
 
 <script>
-const IMG = "./";
-const TIMER = 60000;
+/* =========================
+   CONFIG
+========================= */
+const TIMER_MS = 60000; // 60s (exceto PDF)
 const WHATS = "https://wa.me/5541998518452";
 
-/* ✅ como você subiu tudo na raiz, o viewer é esse */
-const PDFJS_VIEWER = "./viewer.html";
+/* viewer candidatos (porque você subiu “tudão” e pode estar em lugares diferentes) */
+let PDFJS_VIEWER = null;
+const PDFJS_VIEWER_CANDIDATES = [
+  "./viewer.html",
+  "./pdfjs/web/viewer.html",
+  "./web/viewer.html",
+  "./pdfjs/viewer.html"
+];
 
+/* =========================
+   DOM
+========================= */
 const grid = document.getElementById("grid");
 
-const top1=document.getElementById("top1");
-const top2=document.getElementById("top2");
-const top3=document.getElementById("top3");
+const top1 = document.getElementById("top1");
+const top2 = document.getElementById("top2");
+const top3 = document.getElementById("top3");
 
-const t1=document.getElementById("top1img");
-const t2=document.getElementById("top2img");
-const t3=document.getElementById("top3img");
+const t1 = document.getElementById("top1img");
+const t2 = document.getElementById("top2img");
+const t3 = document.getElementById("top3img");
 
-const b1=document.getElementById("top1btn");
-const b2=document.getElementById("top2btn");
-const b3=document.getElementById("top3btn");
+const b1 = document.getElementById("top1btn");
+const b2 = document.getElementById("top2btn");
+const b3 = document.getElementById("top3btn");
 
-const cap1=document.getElementById("cap1");
-const cap2=document.getElementById("cap2");
-const cap3=document.getElementById("cap3");
+const cap1 = document.getElementById("cap1");
+const cap2 = document.getElementById("cap2");
+const cap3 = document.getElementById("cap3");
 
-const bot1=document.getElementById("bot1p");
-const bot2=document.getElementById("bot2p");
-const bot3=document.getElementById("bot3p");
+const bot1 = document.getElementById("bot1p");
+const bot2 = document.getElementById("bot2p");
+const bot3 = document.getElementById("bot3p");
 
-const bot1Panel=document.getElementById("bot1");
-const bot2Panel=document.getElementById("bot2");
-const bot3Panel=document.getElementById("bot3");
+const bot1Panel = document.getElementById("bot1");
+const bot2Panel = document.getElementById("bot2");
+const bot3Panel = document.getElementById("bot3");
 
-const pdfWrap=document.getElementById("pdfWrap");
-const pdfFrame=document.getElementById("pdfFrame");
-const pdfBack=document.getElementById("pdfBack");
-const pdfWhats=document.getElementById("pdfWhats");
+const pdfWrap = document.getElementById("pdfWrap");
+const pdfFrame = document.getElementById("pdfFrame");
+const pdfBack = document.getElementById("pdfBack");
+const pdfWhats = document.getElementById("pdfWhats");
 
-let timer;
+let timer = null;
 
-/* ✅ imagem 03 é jpeg */
-function img(name){ return name==="03" ? IMG+"03.jpeg" : IMG+name+".png"; }
+/* =========================
+   HELPERS
+========================= */
+function clearT(){ if(timer) clearTimeout(timer); timer=null; }
+function startT(fn){ clearT(); timer=setTimeout(fn, TIMER_MS); }
 
-function clearT(){ if(timer) clearTimeout(timer); }
-function startT(fn){ clearT(); timer=setTimeout(fn, TIMER); }
+function show(el){ el.classList.remove("hidden"); }
+function hide(el){ el.classList.add("hidden"); }
 
-function showPanel(el){ el.classList.remove("hidden"); }
-function hidePanel(el){ el.classList.add("hidden"); }
+function setGridMode(mode){
+  grid.classList.remove("twoCols","centerOnly");
+  if(mode==="two") grid.classList.add("twoCols");
+  if(mode==="center") grid.classList.add("centerOnly");
+}
 
-function setBtn(btnEl, text, onClick){
-  btnEl.textContent = text || "";
-  btnEl.onclick = null;
-  if(!text){ btnEl.classList.add("hidden"); return; }
-  btnEl.classList.remove("hidden");
-  btnEl.onclick = onClick;
+function img(name){
+  // só 03 é jpeg
+  return (name==="03") ? "./03.jpeg" : "./"+name+".png";
 }
 
 function setImg(imgEl, src){
   imgEl.style.display="block";
   imgEl.onerror = () => { imgEl.style.display="none"; };
-  imgEl.src = src;
+  imgEl.src = src || "";
 }
 
-function setTwoColsMode(on){
-  if(on) grid.classList.add("twoCols");
-  else grid.classList.remove("twoCols");
+function setBtn(btnEl, label, fn){
+  btnEl.onclick = null;
+  if(!label){
+    btnEl.textContent="";
+    btnEl.classList.add("hidden");
+    return;
+  }
+  btnEl.classList.remove("hidden");
+  btnEl.textContent = label;
+  btnEl.onclick = fn;
 }
 
-function clearBtnOnly(){
-  top1.classList.remove("btnOnly");
-  top2.classList.remove("btnOnly");
-  top3.classList.remove("btnOnly");
-}
-
-/* ✅ texto único: desktop embaixo + mobile dentro do card */
 function setText(slot, html){
   const v = html || "";
   if(slot===1){ bot1.innerHTML=v; cap1.innerHTML=v; }
@@ -318,428 +297,475 @@ function setText(slot, html){
   if(slot===3){ bot3.innerHTML=v; cap3.innerHTML=v; }
 }
 
-function resetLayout(){
-  clearBtnOnly();
+function resetAll(){
+  clearT();
 
-  hidePanel(pdfWrap);
+  hide(pdfWrap);
   pdfFrame.removeAttribute("src");
 
-  showPanel(top1); showPanel(top2); showPanel(top3);
-  showPanel(bot1Panel); showPanel(bot2Panel); showPanel(bot3Panel);
+  show(top1); show(top2); show(top3);
+  show(bot1Panel); show(bot2Panel); show(bot3Panel);
 
-  setBtn(b1, "", null); setBtn(b2, "", null); setBtn(b3, "", null);
+  setGridMode("three");
+
+  setBtn(b1,"",null); setBtn(b2,"",null); setBtn(b3,"",null);
 
   setText(1,""); setText(2,""); setText(3,"");
 
-  t1.removeAttribute("src");
-  t2.removeAttribute("src");
-  t3.removeAttribute("src");
-  t1.style.display="block";
-  t2.style.display="block";
-  t3.style.display="block";
-
-  setTwoColsMode(false);
+  setImg(t1,""); setImg(t2,""); setImg(t3,"");
 }
 
-/* centro + escolhas laterais */
-function centerWithSideChoices(centerImgName, leftText, leftFn, rightText, rightFn, centerBottomHtml, timeoutFn){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img(centerImgName));
-
-  top1.classList.add("btnOnly");
-  top3.classList.add("btnOnly");
-  t1.style.display="none";
-  t3.style.display="none";
-
-  setBtn(b1, leftText, leftFn);
-  setBtn(b3, rightText, rightFn);
-
-  hidePanel(bot1Panel);
-  hidePanel(bot3Panel);
-  showPanel(bot2Panel);
-
-  setText(2, centerBottomHtml || "");
-  startT(timeoutFn);
+/* =========================
+   PDF FIX (URL absoluta + acha viewer)
+========================= */
+function siteBase(){
+  const u = new URL(window.location.href);
+  u.hash = "";
+  u.search = "";
+  const path = u.pathname.endsWith("/") ? u.pathname : u.pathname.replace(/\/[^\/]*$/, "/");
+  return u.origin + path;
+}
+function pdfAbs(name){
+  return siteBase() + name + ".pdf";
 }
 
-/* ✅ URL do PDF via PDF.js (sem miniaturas) */
+async function resolvePdfViewer(){
+  for(const p of PDFJS_VIEWER_CANDIDATES){
+    try{
+      const r = await fetch(p, { cache:"no-store" });
+      if(r.ok){ PDFJS_VIEWER = p; return; }
+    }catch(e){}
+  }
+  PDFJS_VIEWER = null; // fallback: abrir direto (com UI do navegador)
+}
+resolvePdfViewer();
+
 function pdfUrl(name){
-  const filePath = "./" + name + ".pdf";
-  return PDFJS_VIEWER + "?file=" + encodeURIComponent(filePath) + "#pagemode=none";
+  const file = pdfAbs(name);
+  if(PDFJS_VIEWER){
+    return PDFJS_VIEWER + "?file=" + encodeURIComponent(file) + "#pagemode=none";
+  }
+  return file;
 }
 
-/* ✅ PDF: SEM TIMER */
+/* PDF: SEM TIMER */
 function showPdf(name, onBack){
-  clearT(); // mata o timer (não existe timer em pdf)
+  clearT(); // remove timer nas telas de PDF
 
-  hidePanel(top1); hidePanel(top2); hidePanel(top3);
-  showPanel(pdfWrap);
+  hide(top1); hide(top2); hide(top3);
+  show(pdfWrap);
 
+  // tira texts do meio se quiser (mas você usava "muito caro / quero comprar" embaixo)
   pdfFrame.src = pdfUrl(name);
 
-  pdfBack.onclick = () => { hidePanel(pdfWrap); onBack(); };
+  pdfBack.onclick = () => { hide(pdfWrap); onBack(); };
   pdfWhats.onclick = () => window.location.href = WHATS;
 }
 
 /* =========================
-   INICIO
+   RENDER ENGINE (telas)
 ========================= */
-function inicio(){
-  clearT();
-  resetLayout();
+function renderScreen(screen){
+  resetAll();
 
-  hidePanel(top2);
-  hidePanel(bot2Panel);
-  setTwoColsMode(true);
+  // screen.mode: "two" | "three" | "center"
+  setGridMode(screen.mode || "three");
 
-  setImg(t1, img("01"));
-  setImg(t3, img("02"));
+  // pdf?
+  if(screen.type==="pdf"){
+    // mantém textos embaixo se vierem
+    if(screen.text1) setText(1, screen.text1);
+    if(screen.text2) setText(2, screen.text2);
+    if(screen.text3) setText(3, screen.text3);
 
-  setBtn(b1, "continuar", () => etapa01_q1());
-  setBtn(b3, "continuar", () => etapa02_q1());
+    // ocultar painel bot2 se vazio (normalmente é)
+    if(!screen.text2) hide(bot2Panel);
 
-  setText(1, "<div class='bigLabel'>mulher</div>");
-  setText(3, "<div class='bigLabel'>homem</div>");
+    // abrir pdf (topo ocupa tudo)
+    showPdf(screen.pdfName, screen.onBack);
+    return;
+  }
 
-  startT(() => (Math.random() < 0.5 ? etapa01_q1() : etapa02_q1()));
+  // Top panels visibility
+  if(screen.hideTop1) hide(top1);
+  if(screen.hideTop2) hide(top2);
+  if(screen.hideTop3) hide(top3);
+
+  // Bottom panels visibility
+  if(screen.hideBot1) hide(bot1Panel);
+  if(screen.hideBot2) hide(bot2Panel);
+  if(screen.hideBot3) hide(bot3Panel);
+
+  // Images
+  if(screen.img1) setImg(t1, img(screen.img1)); else setImg(t1,"");
+  if(screen.img2) setImg(t2, img(screen.img2)); else setImg(t2,"");
+  if(screen.img3) setImg(t3, img(screen.img3)); else setImg(t3,"");
+
+  // Texts
+  setText(1, screen.text1 || "");
+  setText(2, screen.text2 || "");
+  setText(3, screen.text3 || "");
+
+  // Buttons
+  setBtn(b1, screen.btn1Label || "", screen.btn1Action || null);
+  setBtn(b2, screen.btn2Label || "", screen.btn2Action || null);
+  setBtn(b3, screen.btn3Label || "", screen.btn3Action || null);
+
+  // Timer behavior
+  if(screen.timer===false){
+    clearT();
+  }else{
+    if(typeof screen.onTimeout === "function"){
+      startT(screen.onTimeout);
+    }
+  }
 }
 
 /* =========================
-   ETAPA 01
+   FLOW (todas as etapas)
 ========================= */
-function etapa01_q1(){
-  centerWithSideChoices(
-    "0102",
-    "sim", () => etapa01_tipo(),
-    "não", () => etapa01_fimNao(),
-    "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    () => etapa01_fimNao()
-  );
+
+/* INICIO */
+function inicio(){
+  renderScreen({
+    mode:"two",
+    hideTop2:true,
+    hideBot2:true,
+    img1:"01",
+    img3:"02",
+    text1:"<div class='bigLabel'>mulher</div>",
+    text3:"<div class='bigLabel'>homem</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa01_q1,
+    btn3Action: etapa02_q1,
+    onTimeout: () => (Math.random()<0.5 ? etapa01_q1() : etapa02_q1())
+  });
 }
 
-function etapa01_fimNao(){
-  clearT();
-  resetLayout();
+/* ===== ETAPA 01 ===== */
+function etapa01_q1(){
+  renderScreen({
+    mode:"center",
+    img2:"0102",
+    text2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    btn1Label:"sim",
+    btn3Label:"não",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    btn1Action: etapa01_tipo,
+    btn3Action: etapa01_nao_end,
+    onTimeout: etapa01_nao_end
+  });
+}
 
-  hidePanel(top1); hidePanel(top3);
-  hidePanel(bot1Panel); hidePanel(bot3Panel);
-
-  setImg(t2, img("0105"));
-  setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
-
-  startT(() => inicio());
+function etapa01_nao_end(){
+  renderScreen({
+    mode:"center",
+    img2:"0105",
+    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div><div class='smallHint' style='text-align:center;margin-top:6px'>sem mais escolhas — volta ao início ao fim do tempo</div>",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    btn2Label:"",
+    onTimeout: inicio
+  });
 }
 
 function etapa01_tipo(){
-  clearT();
-  resetLayout();
-
-  setImg(t1, img("0401"));
-  setImg(t2, img("0103"));
-  setImg(t3, img("0301"));
-
-  setBtn(b1, "continuar", () => etapa01_barato());
-  setBtn(b3, "continuar", () => etapa01_emporium());
-
-  setText(1, "<div class='bigLabel'>Loja Baratesa</div>");
-  setText(2, "<div class='centerText'>Qual tipo de joalheria você escolheria?</div>");
-  setText(3, "<div class='bigLabel'>Emporium24k</div>");
-
-  startT(() => inicio());
+  renderScreen({
+    mode:"three",
+    img1:"0401",
+    img2:"0103",
+    img3:"0301",
+    text1:"<div class='bigLabel'>Loja Baratesa</div>",
+    text2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
+    text3:"<div class='bigLabel'>Emporium24k</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa01_baratesa_q,
+    btn3Action: etapa01_emporium_q,
+    onTimeout: inicio
+  });
 }
 
-function etapa01_emporium(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("03"));
-  setImg(t1, img("0103"));
-  setImg(t3, img("0103"));
-
-  setBtn(b1, "continuar", () => etapa01_pdf_prata());
-  setBtn(b3, "continuar", () => etapa01_pdf_ouro());
-
-  setText(1, "<div class='bigLabel'>quero um par de anéis de namoro</div>");
-  setText(2, "<div class='centerText'>Olá como posso te ajudar?</div>");
-  setText(3, "<div class='bigLabel'>quero um par de anéis de casamento</div>");
-
-  startT(() => etapa01_tipo());
+/* Emporium24k - pergunta namoro/casamento */
+function etapa01_emporium_q(){
+  renderScreen({
+    mode:"three",
+    img2:"03",
+    img1:"0103",
+    img3:"0103",
+    text2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+    text1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+    text3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa01_pdf_prata,
+    btn3Action: etapa01_pdf_ouro,
+    onTimeout: etapa01_tipo
+  });
 }
 
+/* Loja Baratesa - sim/não */
+function etapa01_baratesa_q(){
+  renderScreen({
+    mode:"three",
+    img2:"04",
+    img1:"0103",
+    img3:"0103",
+    text2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+    text1:"<div class='bigLabel'>sim</div>",
+    text3:"<div class='bigLabel'>não</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa01_tapeada,
+    btn3Action: etapa01_tipo,
+    onTimeout: etapa01_tipo
+  });
+}
+
+/* PDF prata */
 function etapa01_pdf_prata(){
-  resetLayout();
-  hidePanel(bot2Panel);
-  showPanel(bot1Panel); showPanel(bot3Panel);
-
-  setText(1, "<div class='bigLabel'>muito caro</div>");
-  setText(3, "<div class='bigLabel'>quero comprar</div>");
-
-  showPdf("Prata", () => etapa01_tipo());
+  renderScreen({
+    type:"pdf",
+    pdfName:"Prata",
+    text1:"<div class='bigLabel'>muito caro</div>",
+    text3:"<div class='bigLabel'>quero comprar</div>",
+    // botão voltar do PDF volta para etapa01 parte 2 sim (etapa01_tipo)
+    onBack: etapa01_tipo
+    // timer não existe em pdf
+  });
 }
 
+/* PDF ouro */
 function etapa01_pdf_ouro(){
-  resetLayout();
-  hidePanel(bot2Panel);
-  showPanel(bot1Panel); showPanel(bot3Panel);
-
-  setText(1, "<div class='bigLabel'>muito caro</div>");
-  setText(3, "<div class='bigLabel'>quero comprar</div>");
-
-  showPdf("Ouro", () => etapa01_tipo());
+  renderScreen({
+    type:"pdf",
+    pdfName:"Ouro",
+    text1:"<div class='bigLabel'>muito caro</div>",
+    text3:"<div class='bigLabel'>quero comprar</div>",
+    onBack: etapa01_tipo
+  });
 }
 
-function etapa01_barato(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("04"));
-  setImg(t1, img("0103"));
-  setImg(t3, img("0103"));
-
-  setBtn(b1, "continuar", () => etapa01_tapeada());
-  setBtn(b3, "continuar", () => etapa01_tipo());
-
-  setText(1, "<div class='bigLabel'>sim</div>");
-  setText(2, "<div class='centerText'>Eai procurando um par de alianças no precinho?</div>");
-  setText(3, "<div class='bigLabel'>não</div>");
-
-  startT(() => etapa01_tipo());
-}
-
+/* Tapeada */
 function etapa01_tapeada(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("0108"));
-  setImg(t1, img("0105"));
-  setImg(t3, img("0106"));
-
-  setBtn(b1, "continuar", () => inicio());
-  setBtn(b3, "continuar", () => etapa01_alerta());
-
-  setText(1, "<div class='bigLabel'>Desistir</div>");
-  setText(2, "<div class='centerText'>FUI TAPEADA</div>");
-  setText(3, "<div class='bigLabel'>voltar na loja barateza</div>");
-
-  startT(() => inicio());
+  renderScreen({
+    mode:"three",
+    img2:"0108",
+    img1:"0105",
+    img3:"0106",
+    text2:"<div class='centerText'>FUI TAPEADA</div>",
+    text1:"<div class='bigLabel'>Desistir</div>",
+    text3:"<div class='bigLabel'>voltar na loja barateza</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: inicio,
+    btn3Action: etapa01_aviso,
+    onTimeout: inicio // se não escolher, desistir
+  });
 }
 
-function etapa01_alerta(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("0402"));
-  setImg(t1, img("0106"));
-  setImg(t3, img("0105"));
-
-  setBtn(b1, "continuar", () => etapa01_lutar());
-  setBtn(b3, "continuar", () => inicio());
-
-  setText(1, "<div class='bigLabel'>LUTAR</div>");
-  setText(2, "<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>");
-  setText(3, "<div class='bigLabel'>Desistir</div>");
-
-  startT(() => inicio());
+/* Aviso qualidade */
+function etapa01_aviso(){
+  renderScreen({
+    mode:"three",
+    img2:"0402",
+    img1:"0106",
+    img3:"0105",
+    text2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+    text1:"<div class='bigLabel'>LUTAR</div>",
+    text3:"<div class='bigLabel'>Desistir</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa01_luta1,
+    btn3Action: inicio,
+    onTimeout: inicio // desistir
+  });
 }
 
-function etapa01_lutar(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(bot1Panel);
-  hidePanel(top3); hidePanel(bot3Panel);
-  showPanel(top2); showPanel(bot2Panel);
-
-  setImg(t2, img("0403"));
-  setBtn(b2, "continuar", () => etapa01_final());
-
-  setText(2, "");
-  startT(() => etapa01_final());
+function etapa01_luta1(){
+  renderScreen({
+    mode:"center",
+    img2:"0403",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    text2:"",
+    btn2Label:"continuar",
+    btn2Action: etapa01_luta2,
+    onTimeout: etapa01_luta2
+  });
 }
 
-function etapa01_final(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(bot1Panel);
-  hidePanel(top3); hidePanel(bot3Panel);
-  showPanel(top2); showPanel(bot2Panel);
-
-  setImg(t2, img("0107"));
-  setBtn(b2, "continuar", () => inicio());
-
-  setText(2, "");
-  startT(() => inicio());
+function etapa01_luta2(){
+  renderScreen({
+    mode:"center",
+    img2:"0107",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    text2:"",
+    btn2Label:"continuar",
+    btn2Action: inicio,
+    onTimeout: inicio
+  });
 }
 
-/* =========================
-   ETAPA 02
-========================= */
+/* ===== ETAPA 02 ===== */
 function etapa02_q1(){
-  centerWithSideChoices(
-    "0202",
-    "sim", () => etapa02_tipo(),
-    "não", () => etapa02_fimNao(),
-    "<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
-    () => etapa02_fimNao()
-  );
+  renderScreen({
+    mode:"center",
+    img2:"0202",
+    text2:"<div class='centerText'>Você vai aprofundar seu relacionamento comprando um anel?</div>",
+    btn1Label:"sim",
+    btn3Label:"não",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    btn1Action: etapa02_tipo,
+    btn3Action: etapa02_nao_end,
+    onTimeout: etapa02_nao_end
+  });
 }
 
-function etapa02_fimNao(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(top3);
-  hidePanel(bot1Panel); hidePanel(bot3Panel);
-
-  setImg(t2, img("0205"));
-  setText(2, "ah que pena, desejo tudo de bom para o seu relacionamento então");
-
-  startT(() => inicio());
+function etapa02_nao_end(){
+  renderScreen({
+    mode:"center",
+    img2:"0205",
+    text2:"<div class='centerText'>ah que pena, desejo tudo de bom para o seu relacionamento então</div><div class='smallHint' style='text-align:center;margin-top:6px'>sem mais escolhas — volta ao início ao fim do tempo</div>",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    onTimeout: inicio
+  });
 }
 
 function etapa02_tipo(){
-  clearT();
-  resetLayout();
-
-  setImg(t1, img("0401"));
-  setImg(t2, img("0203"));
-  setImg(t3, img("0301"));
-
-  setBtn(b1, "continuar", () => etapa02_barato());
-  setBtn(b3, "continuar", () => etapa02_emporium());
-
-  setText(1, "<div class='bigLabel'>Loja Baratesa</div>");
-  setText(2, "<div class='centerText'>Qual tipo de joalheria você escolheria?</div>");
-  setText(3, "<div class='bigLabel'>Emporium24k</div>");
-
-  startT(() => inicio());
+  renderScreen({
+    mode:"three",
+    img1:"0401",
+    img2:"0203",
+    img3:"0301",
+    text1:"<div class='bigLabel'>Loja Baratesa</div>",
+    text2:"<div class='centerText'>Qual tipo de joalheria você escolheria?</div>",
+    text3:"<div class='bigLabel'>Emporium24k</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa02_baratesa_q,
+    btn3Action: etapa02_emporium_q,
+    onTimeout: inicio
+  });
 }
 
-function etapa02_emporium(){
-  clearT();
-  resetLayout();
+function etapa02_emporium_q(){
+  renderScreen({
+    mode:"three",
+    img2:"03",
+    img1:"0203",
+    img3:"0203",
+    text2:"<div class='centerText'>Olá como posso te ajudar?</div>",
+    text1:"<div class='bigLabel'>quero um par de anéis de namoro</div>",
+    text3:"<div class='bigLabel'>quero um par de anéis de casamento</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa02_pdf_prata,
+    btn3Action: etapa02_pdf_ouro,
+    onTimeout: etapa02_tipo
+  });
+}
 
-  setImg(t2, img("03"));
-  setImg(t1, img("0203"));
-  setImg(t3, img("0203"));
-
-  setBtn(b1, "continuar", () => etapa02_pdf_prata());
-  setBtn(b3, "continuar", () => etapa02_pdf_ouro());
-
-  setText(1, "<div class='bigLabel'>quero um par de anéis de namoro</div>");
-  setText(2, "<div class='centerText'>Olá como posso te ajudar?</div>");
-  setText(3, "<div class='bigLabel'>quero um par de anéis de casamento</div>");
-
-  startT(() => etapa02_tipo());
+function etapa02_baratesa_q(){
+  renderScreen({
+    mode:"three",
+    img2:"04",
+    img1:"0203",
+    img3:"0203",
+    text2:"<div class='centerText'>Eai procurando um par de alianças no precinho?</div>",
+    text1:"<div class='bigLabel'>sim</div>",
+    text3:"<div class='bigLabel'>não</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa02_tapeado,
+    btn3Action: etapa02_tipo,
+    onTimeout: etapa02_tipo
+  });
 }
 
 function etapa02_pdf_prata(){
-  resetLayout();
-  hidePanel(bot2Panel);
-  showPanel(bot1Panel); showPanel(bot3Panel);
-
-  setText(1, "<div class='bigLabel'>muito caro</div>");
-  setText(3, "<div class='bigLabel'>quero comprar</div>");
-
-  showPdf("Prata", () => etapa02_tipo());
+  renderScreen({
+    type:"pdf",
+    pdfName:"Prata",
+    text1:"<div class='bigLabel'>muito caro</div>",
+    text3:"<div class='bigLabel'>quero comprar</div>",
+    onBack: etapa02_tipo
+  });
 }
 
 function etapa02_pdf_ouro(){
-  resetLayout();
-  hidePanel(bot2Panel);
-  showPanel(bot1Panel); showPanel(bot3Panel);
-
-  setText(1, "<div class='bigLabel'>muito caro</div>");
-  setText(3, "<div class='bigLabel'>quero comprar</div>");
-
-  showPdf("Ouro", () => etapa02_tipo());
-}
-
-function etapa02_barato(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("04"));
-  setImg(t1, img("0203"));
-  setImg(t3, img("0203"));
-
-  setBtn(b1, "continuar", () => etapa02_tapeado());
-  setBtn(b3, "continuar", () => etapa02_tipo());
-
-  setText(1, "<div class='bigLabel'>sim</div>");
-  setText(2, "<div class='centerText'>Eai procurando um par de alianças no precinho?</div>");
-  setText(3, "<div class='bigLabel'>não</div>");
-
-  startT(() => etapa02_tipo());
+  renderScreen({
+    type:"pdf",
+    pdfName:"Ouro",
+    text1:"<div class='bigLabel'>muito caro</div>",
+    text3:"<div class='bigLabel'>quero comprar</div>",
+    onBack: etapa02_tipo
+  });
 }
 
 function etapa02_tapeado(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("0208"));
-  setImg(t1, img("0205"));
-  setImg(t3, img("0206"));
-
-  setBtn(b1, "continuar", () => inicio());
-  setBtn(b3, "continuar", () => etapa02_alerta());
-
-  setText(1, "<div class='bigLabel'>Desistir</div>");
-  setText(2, "<div class='centerText'>FUI TAPEADO</div>");
-  setText(3, "<div class='bigLabel'>voltar na loja barateza</div>");
-
-  startT(() => inicio());
+  renderScreen({
+    mode:"three",
+    img2:"0208",
+    img1:"0205",
+    img3:"0206",
+    text2:"<div class='centerText'>FUI TAPEADO</div>",
+    text1:"<div class='bigLabel'>Desistir</div>",
+    text3:"<div class='bigLabel'>voltar na loja barateza</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: inicio,
+    btn3Action: etapa02_aviso,
+    onTimeout: inicio
+  });
 }
 
-function etapa02_alerta(){
-  clearT();
-  resetLayout();
-
-  setImg(t2, img("0402"));
-  setImg(t1, img("0206"));
-  setImg(t3, img("0205"));
-
-  setBtn(b1, "continuar", () => etapa02_lutar());
-  setBtn(b3, "continuar", () => inicio());
-
-  setText(1, "<div class='bigLabel'>LUTAR</div>");
-  setText(2, "<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>");
-  setText(3, "<div class='bigLabel'>Desistir</div>");
-
-  startT(() => inicio());
+function etapa02_aviso(){
+  renderScreen({
+    mode:"three",
+    img2:"0402",
+    img1:"0206",
+    img3:"0205",
+    text2:"<div class='centerText'>VOCÊ ACHA MESMO QUE UM ANEL NESSE PREÇO É DE ALTA QUALIDADE? VOCÊ NÃO TEM GARANTIA</div>",
+    text1:"<div class='bigLabel'>LUTAR</div>",
+    text3:"<div class='bigLabel'>Desistir</div>",
+    btn1Label:"continuar",
+    btn3Label:"continuar",
+    btn1Action: etapa02_luta1,
+    btn3Action: inicio,
+    onTimeout: inicio
+  });
 }
 
-function etapa02_lutar(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(bot1Panel);
-  hidePanel(top3); hidePanel(bot3Panel);
-  showPanel(top2); showPanel(bot2Panel);
-
-  setImg(t2, img("0403"));
-  setBtn(b2, "continuar", () => etapa02_final());
-
-  setText(2, "");
-  startT(() => etapa02_final());
+function etapa02_luta1(){
+  renderScreen({
+    mode:"center",
+    img2:"0403",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    text2:"",
+    btn2Label:"continuar",
+    btn2Action: etapa02_luta2,
+    onTimeout: etapa02_luta2
+  });
 }
 
-function etapa02_final(){
-  clearT();
-  resetLayout();
-
-  hidePanel(top1); hidePanel(bot1Panel);
-  hidePanel(top3); hidePanel(bot3Panel);
-  showPanel(top2); showPanel(bot2Panel);
-
-  setImg(t2, img("0207"));
-  setBtn(b2, "continuar", () => inicio());
-
-  setText(2, "");
-  startT(() => inicio());
+function etapa02_luta2(){
+  renderScreen({
+    mode:"center",
+    img2:"0207",
+    hideTop1:true, hideTop3:true,
+    hideBot1:true, hideBot3:true,
+    text2:"",
+    btn2Label:"continuar",
+    btn2Action: inicio,
+    onTimeout: inicio
+  });
 }
 
 /* START */
